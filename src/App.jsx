@@ -10,7 +10,7 @@ import UserBookings from './pages/user/UserBookings';
 
 // Guide Imports
 import GuideLayout from './components/GuideLayout';
-import Requests from './pages/Guide/Requests.jsx';
+
 import MyProfile from './pages/Guide/MyProfile';
 import GuideHome from './pages/Guide/GuideHome';
 import AdminLayout from './components/AdminLayout';
@@ -22,6 +22,7 @@ import Register from './pages/auth/Register';
 import AdminHome from './pages/admin/adminHome';
 import ManageUsers from './pages/admin/ManageUsers';
 import ViewBookings from './pages/admin/ViewBooking';
+import Requests from './pages/Guide/Requests';
 
 function App() {
 
@@ -59,7 +60,7 @@ function App() {
         {/* --- Guide Dashboard Routes (With Sidebar Layout) --- */}
         <Route path="/guide" element={<GuideLayout />}>
           <Route index element={<GuideHome />} />
-          <Route path="requests" element={<Requests />} />
+          <Route path="requests" element={<Requests/>} />
           <Route path="profile" element={<MyProfile />} />
         </Route>
 
