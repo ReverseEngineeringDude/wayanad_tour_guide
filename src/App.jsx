@@ -11,8 +11,8 @@ import UserBookings from './pages/user/UserBookings';
 // Guide Imports
 import GuideLayout from './components/GuideLayout';
 
-import MyProfile from './pages/Guide/MyProfile';
-import GuideHome from './pages/Guide/GuideHome';
+import MyProfile from './pages/guide/MyProfile';
+import GuideHome from './pages/guide/GuideHome';
 import AdminLayout from './components/AdminLayout';
 
 import ManageGuides from './pages/admin/ManageGuides';
@@ -22,7 +22,7 @@ import Register from './pages/auth/Register';
 import AdminHome from './pages/admin/adminHome';
 import ManageUsers from './pages/admin/ManageUsers';
 import ViewBookings from './pages/admin/ViewBooking';
-import Requests from './pages/Guide/Requests';
+import Requests from './pages/guide/Requests';
 
 function App() {
 
