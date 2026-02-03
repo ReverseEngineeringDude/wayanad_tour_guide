@@ -10,7 +10,7 @@ import UserBookings from './pages/user/UserBookings';
 
 // Guide Imports
 import GuideLayout from './components/GuideLayout';
-import Requests from './pages/Guide/Requests';
+import Requests from './pages/Guide/Requests.jsx';
 import MyProfile from './pages/Guide/MyProfile';
 import GuideHome from './pages/Guide/GuideHome';
 import AdminLayout from './components/AdminLayout';
