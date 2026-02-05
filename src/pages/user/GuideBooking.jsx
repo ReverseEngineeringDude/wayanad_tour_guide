@@ -23,7 +23,7 @@ const GuideBooking = () => {
     requests: ''
   });
 
-  const [step, setStep] = useState(1); // 1: Booking, 2: Success
+  const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -37,20 +37,23 @@ const GuideBooking = () => {
   const handleConfirm = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API Call
+    
+    // --- SIMULATION ---
+    // In a real app, you would POST 'formData' to your backend here.
+    console.log("Booking Payload:", { ...formData, guideId: guide.id, placeId: place.id });
+
     setTimeout(() => {
       setIsLoading(false);
       setStep(2);
     }, 1500);
   };
 
-  // Validation: Check if required fields are filled
   const isValid = formData.date && formData.time && formData.guests && formData.phone1 && formData.phone2;
 
   return (
     <div className="min-h-screen bg-[#E2E6D5] font-['Poppins'] flex flex-col lg:flex-row overflow-hidden">
       
-      {/* --- LEFT: GUIDE PROFILE (Immersive) --- */}
+      {/* --- LEFT: GUIDE PROFILE --- */}
       <motion.div 
         initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8 }}
         className="w-full lg:w-5/12 h-[40vh] lg:h-screen relative bg-[#1F261C]"
@@ -96,89 +99,58 @@ const GuideBooking = () => {
 
                   <form onSubmit={handleConfirm} className="space-y-5">
                      
-                     {/* Row 1: Date & Time */}
+                     {/* Form Fields (Same as before) */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm focus-within:border-[#3D4C38] transition-colors">
+                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm">
                            <label className="text-[10px] font-bold uppercase text-[#5A6654] block mb-2">Date</label>
                            <div className="flex items-center gap-3 text-[#2B3326]">
                               <FaCalendarAlt className="text-[#3D4C38]" />
-                              <input 
-                                required name="date" type="date" 
-                                value={formData.date} onChange={handleInputChange}
-                                className="bg-transparent w-full font-bold outline-none text-sm" 
-                              />
+                              <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="bg-transparent w-full font-bold outline-none text-sm" />
                            </div>
                         </div>
-                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm focus-within:border-[#3D4C38] transition-colors">
+                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm">
                            <label className="text-[10px] font-bold uppercase text-[#5A6654] block mb-2">Time</label>
                            <div className="flex items-center gap-3 text-[#2B3326]">
                               <FaClock className="text-[#3D4C38]" />
-                              <input 
-                                required name="time" type="time" 
-                                value={formData.time} onChange={handleInputChange}
-                                className="bg-transparent w-full font-bold outline-none text-sm" 
-                              />
+                              <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="bg-transparent w-full font-bold outline-none text-sm" />
                            </div>
                         </div>
                      </div>
 
-                     {/* Row 2: Guests */}
-                     <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm focus-within:border-[#3D4C38] transition-colors">
+                     <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm">
                         <label className="text-[10px] font-bold uppercase text-[#5A6654] block mb-2">Number of Persons</label>
                         <div className="flex items-center gap-3 text-[#2B3326]">
                            <FaUserFriends className="text-[#3D4C38]" />
-                           <input 
-                             required name="guests" type="number" min="1" placeholder="e.g. 4"
-                             value={formData.guests} onChange={handleInputChange}
-                             className="bg-transparent w-full font-bold outline-none text-sm" 
-                           />
+                           <input required name="guests" type="number" min="1" placeholder="e.g. 4" value={formData.guests} onChange={handleInputChange} className="bg-transparent w-full font-bold outline-none text-sm" />
                         </div>
                      </div>
 
-                     {/* Row 3: Contact Numbers */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm focus-within:border-[#3D4C38] transition-colors">
+                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm">
                            <label className="text-[10px] font-bold uppercase text-[#5A6654] block mb-2">Primary Contact</label>
                            <div className="flex items-center gap-3 text-[#2B3326]">
                               <FaPhone className="text-[#3D4C38]" />
-                              <input 
-                                required name="phone1" type="tel" placeholder="+91 99999 99999"
-                                value={formData.phone1} onChange={handleInputChange}
-                                className="bg-transparent w-full font-bold outline-none text-sm" 
-                              />
+                              <input required name="phone1" type="tel" placeholder="+91 99999 99999" value={formData.phone1} onChange={handleInputChange} className="bg-transparent w-full font-bold outline-none text-sm" />
                            </div>
                         </div>
-                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm focus-within:border-[#3D4C38] transition-colors">
+                        <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm">
                            <label className="text-[10px] font-bold uppercase text-[#5A6654] block mb-2">Alternate Contact</label>
                            <div className="flex items-center gap-3 text-[#2B3326]">
                               <FaPhone className="text-[#3D4C38]" />
-                              <input 
-                                required name="phone2" type="tel" placeholder="Required"
-                                value={formData.phone2} onChange={handleInputChange}
-                                className="bg-transparent w-full font-bold outline-none text-sm" 
-                              />
+                              <input required name="phone2" type="tel" placeholder="Required" value={formData.phone2} onChange={handleInputChange} className="bg-transparent w-full font-bold outline-none text-sm" />
                            </div>
                         </div>
                      </div>
 
-                     {/* Row 4: Requests */}
-                     <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm focus-within:border-[#3D4C38] transition-colors">
+                     <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm">
                         <label className="text-[10px] font-bold uppercase text-[#5A6654] block mb-2">Special Requests (Optional)</label>
                         <div className="flex items-start gap-3 text-[#2B3326]">
                            <FaCommentDots className="text-[#3D4C38] mt-1" />
-                           <textarea 
-                             name="requests" rows="2" placeholder="e.g. Need wheelchair assistance, Hindi speaking guide..."
-                             value={formData.requests} onChange={handleInputChange}
-                             className="bg-transparent w-full font-bold outline-none text-sm resize-none" 
-                           />
+                           <textarea name="requests" rows="2" placeholder="e.g. Need wheelchair assistance..." value={formData.requests} onChange={handleInputChange} className="bg-transparent w-full font-bold outline-none text-sm resize-none" />
                         </div>
                      </div>
 
-                     <button 
-                        type="submit"
-                        disabled={!isValid || isLoading}
-                        className={`w-full py-5 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 ${!isValid ? 'bg-[#BFC7B0] text-white cursor-not-allowed' : 'bg-[#3D4C38] text-[#F3F1E7] hover:bg-[#2B3326] hover:-translate-y-1'}`}
-                     >
+                     <button type="submit" disabled={!isValid || isLoading} className={`w-full py-5 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 ${!isValid ? 'bg-[#BFC7B0] text-white cursor-not-allowed' : 'bg-[#3D4C38] text-[#F3F1E7] hover:bg-[#2B3326] hover:-translate-y-1'}`}>
                         {isLoading ? 'Sending Request...' : <><FaPaperPlane /> Send Booking Request</>}
                      </button>
                   </form>
@@ -203,7 +175,6 @@ const GuideBooking = () => {
                   </div>
 
                   <div className="flex flex-col gap-3">
-                     {/* <button onClick={() => navigate('/my-bookings')} className="w-full py-4 bg-[#3D4C38] text-[#F3F1E7] rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#2B3326]">Check Request Status</button> */}
                      <button onClick={() => navigate('/explore')} className="w-full py-4 border border-[#3D4C38] text-[#3D4C38] rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#E2E6D5]">Explore More</button>
                   </div>
                </motion.div>

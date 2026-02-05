@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUserTie, FaMapMarkedAlt, FaUsers, FaChartPie, FaSignOutAlt, FaTree, FaCalendarAlt, FaTimes, FaCheck } from 'react-icons/fa';
+import { FaUserTie, FaMapMarkedAlt, FaUsers, FaChartPie, FaSignOutAlt, FaTree, FaCalendarAlt } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showLogout, setShowLogout] = useState(false);
+  
+  const { logout } = useAuth(); 
 
   const menuItems = [
     { path: '/admin', label: 'Dashboard', icon: <FaChartPie /> },
@@ -17,8 +20,9 @@ const AdminLayout = () => {
   ];
 
   const handleLogout = () => {
+    logout(); 
     setShowLogout(false);
-    navigate('/'); // Redirect to Home/Login
+    navigate('/login'); 
   };
 
   return (
@@ -85,14 +89,11 @@ const AdminLayout = () => {
 
 
       {/* ==================== MAIN CONTENT AREA (Scroll Fixed) ==================== */}
-      {/* Structural Fix: Flex-col ensures content fills height properly for scrolling */}
       <main className="flex-1 flex flex-col relative z-10 min-w-0 bg-[#E2E6D5]">
         
         {/* Scrollable Container */}
+        {/* REMOVED: The <div className="md:hidden h-20..."> spacer block */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 lg:p-12 pb-32 md:pb-12">
-           {/* Mobile Header Spacer */}
-           <div className="md:hidden h-20 w-full mb-6"></div>
-           
            <Outlet />
         </div>
 
@@ -128,7 +129,7 @@ const AdminLayout = () => {
              onClick={() => setShowLogout(true)}
              className="flex flex-col items-center gap-1 p-2 text-[#F3F1E7]/50 hover:text-[#FF6B6B]"
            >
-              <FaSignOutAlt className="text-lg" />
+             <FaSignOutAlt className="text-lg" />
            </button>
         </nav>
       </div>

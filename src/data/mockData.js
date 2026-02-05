@@ -2,10 +2,52 @@
 
 
 
+// Add this to src/data/mockData.js if not already there
 export const myBookingsData = [
-  { id: 1, place: "Edakkal Caves", guideName: "Rahul K.", date: "2026-02-10", status: "confirmed" },
-  { id: 2, place: "Banasura Sagar Dam", guideName: "Fatima S.", date: "2026-02-15", status: "pending" },
-  { id: 3, place: "Soochipara Waterfalls", guideName: "Arjun M.", date: "2026-01-20", status: "rejected" },
+  { 
+    id: 1, 
+    place: "Edakkal Caves", 
+    guideName: "Rahul K.", 
+    date: "2026-03-10", 
+    time: "09:00 AM",
+    guests: 4,
+    status: "confirmed",
+    image: "https://images.unsplash.com/photo-1629215037466-419b674828b6?q=80&w=600",
+    price: 850
+  },
+  { 
+    id: 2, 
+    place: "Banasura Sagar Dam", 
+    guideName: "Fatima S.", 
+    date: "2026-03-15", 
+    time: "02:00 PM",
+    guests: 2,
+    status: "pending",
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Banasura_Sagar_Dam_Wayanad.jpg",
+    price: 1200
+  },
+  { 
+    id: 3, 
+    place: "Chembra Peak", 
+    guideName: "Arjun M.", 
+    date: "2026-01-20", 
+    time: "06:00 AM",
+    guests: 3,
+    status: "completed",
+    image: "https://images.unsplash.com/photo-1596321287955-467472023023?q=80&w=600",
+    price: 1500
+  },
+  { 
+    id: 4, 
+    place: "Soochipara Waterfalls", 
+    guideName: "Suresh P.", 
+    date: "2026-01-10", 
+    time: "10:00 AM",
+    guests: 5,
+    status: "cancelled",
+    image: "https://images.unsplash.com/photo-1622307168925-502844895693?q=80&w=600",
+    price: 1000
+  }
 ];
 // src/data/mockData.js (Append this to the file)
 

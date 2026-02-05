@@ -4,18 +4,25 @@ import {
   PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import { FaUsers, FaMapMarkedAlt, FaCalendarCheck, FaArrowUp, FaArrowDown, FaEllipsisH } from 'react-icons/fa';
-
-// --- MOCK DATA (Revenue Removed) ---
-const userTypeData = [
-  { name: 'Tourists', value: 1240 },
-  { name: 'Guides', value: 45 },
-  { name: 'Admins', value: 5 },
-];
+import { allUsersData, allGuidesData, allBookingsData } from '../../data/mockData'; // Import Mock Data
 
 const COLORS = ['#3D4C38', '#8B9D77', '#D4AF37']; // Olive, Sage, Gold
 
 const AdminHome = () => {
   
+  // --- CALCULATE DYNAMIC STATS ---
+  const totalTourists = allUsersData.length;
+  const totalGuides = allGuidesData.length;
+  const totalBookings = allBookingsData.length;
+  const totalAdmins = 3; // Mock value as we don't have an admins array
+
+  // Data for Pie Chart
+  const userTypeData = [
+    { name: 'Tourists', value: totalTourists },
+    { name: 'Guides', value: totalGuides },
+    { name: 'Admins', value: totalAdmins },
+  ];
+
   // Animation Variants
   const containerVars = {
     hidden: { opacity: 0 },
@@ -27,12 +34,22 @@ const AdminHome = () => {
     visible: { opacity: 1, y: 0 }
   };
 
+  // Helper for Status Badge Color
+  const getStatusColor = (status) => {
+    switch(status.toLowerCase()) {
+      case 'confirmed': return 'bg-green-100 text-green-700';
+      case 'pending': return 'bg-yellow-100 text-yellow-700';
+      case 'rejected': 
+      case 'cancelled': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
   return (
     <motion.div 
       variants={containerVars}
       initial="hidden"
       animate="visible"
-      // Added pb-20 to ensure content isn't cut off at the bottom
       className="w-full space-y-8 pb-20"
     >
       
@@ -57,29 +74,29 @@ const AdminHome = () => {
       </motion.div>
 
 
-      {/* ==================== 2. STATS GRID (3 Columns) ==================== */}
+      {/* ==================== 2. STATS GRID (Dynamic Data) ==================== */}
       <motion.div 
         variants={itemVars} 
         className="grid grid-cols-1 md:grid-cols-3 gap-6"
       >
         <StatCard 
-          title="Active Users" 
-          value="1,240" 
-          change="+5%" 
+          title="Total Users" 
+          value={totalTourists} 
+          change="+12%" 
           isPositive={true} 
           icon={<FaUsers />} 
         />
         <StatCard 
           title="Total Bookings" 
-          value="89" 
-          change="-2%" 
-          isPositive={false} 
+          value={totalBookings} 
+          change="+8%" 
+          isPositive={true} 
           icon={<FaCalendarCheck />} 
         />
         <StatCard 
           title="Active Guides" 
-          value="45" 
-          change="+1" 
+          value={totalGuides} 
+          change="+2" 
           isPositive={true} 
           icon={<FaMapMarkedAlt />} 
         />
@@ -115,7 +132,7 @@ const AdminHome = () => {
                   ))}
                 </Pie>
                 <Tooltip 
-                   contentStyle={{ backgroundColor: '#2B3326', border: 'none', borderRadius: '8px', color: '#F3F1E7' }}
+                   contentStyle={{ backgroundColor: '#2B3326', border: 'none', borderRadius: '8px', color: '#F3F1E7', fontSize: '12px' }}
                 />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" />
               </PieChart>
@@ -123,7 +140,7 @@ const AdminHome = () => {
           </div>
         </motion.div>
 
-        {/* Recent Activity Table (Expanded to take remaining space) */}
+        {/* Recent Activity Table (Uses allBookingsData) */}
         <motion.div 
           variants={itemVars} 
           className="lg:col-span-2 bg-[#F3F1E7] rounded-2xl shadow-xl shadow-[#3D4C38]/5 border border-[#DEDBD0] overflow-hidden flex flex-col"
@@ -137,7 +154,7 @@ const AdminHome = () => {
             <table className="w-full text-left">
               <thead className="bg-[#E2E6D5]/50">
                 <tr>
-                  {['User', 'Destination', 'Date', 'Status'].map((head) => (
+                  {['Tourist', 'Destination', 'Date', 'Status'].map((head) => (
                     <th key={head} className="px-6 py-4 text-[10px] font-bold text-[#5A6654] uppercase tracking-widest">
                       {head}
                     </th>
@@ -145,19 +162,22 @@ const AdminHome = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#DEDBD0]">
-                {[1, 2, 3, 4, 5, 6].map((i) => ( // Added more rows to test scrolling
-                  <tr key={i} className="hover:bg-[#E2E6D5]/30 transition-colors">
+                {/* Displaying first 5 bookings from mock data */}
+                {allBookingsData.slice(0, 6).map((booking) => (
+                  <tr key={booking.id} className="hover:bg-[#E2E6D5]/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#DEDBD0]"></div>
-                        <span className="font-bold text-[#2B3326] text-sm">Alex Johnson</span>
+                        <div className="w-8 h-8 rounded-full bg-[#DEDBD0] flex items-center justify-center text-[10px] font-bold text-[#5A6654]">
+                           {booking.touristName.charAt(0)}
+                        </div>
+                        <span className="font-bold text-[#2B3326] text-sm">{booking.touristName}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-[#5A6654]">Chembra Peak</td>
-                    <td className="px-6 py-4 text-sm text-[#5A6654]">Oct 24, 2024</td>
+                    <td className="px-6 py-4 text-sm text-[#5A6654] font-medium">{booking.place}</td>
+                    <td className="px-6 py-4 text-sm text-[#5A6654]">{booking.date}</td>
                     <td className="px-6 py-4">
-                      <span className="bg-[#3D4C38]/10 text-[#3D4C38] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
-                        Confirmed
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusColor(booking.status)}`}>
+                        {booking.status}
                       </span>
                     </td>
                   </tr>

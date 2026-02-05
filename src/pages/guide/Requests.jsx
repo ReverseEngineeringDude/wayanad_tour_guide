@@ -4,12 +4,11 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
 import { 
-  FaCalendarCheck, FaCheckCircle, FaTimesCircle, FaClock, FaMapMarkerAlt, FaUser 
+  FaCheckCircle, FaTimesCircle, FaClock, FaMapMarkerAlt, FaUser, FaPhoneAlt, FaWhatsapp, FaUserFriends, FaCommentDots 
 } from 'react-icons/fa';
 import { guideRequestsData } from '../../data/mockData';
 
-// --- MOCK CHART DATA ---
-const COLORS = ['#3D4C38', '#D4AF37', '#e74c3c']; // Confirmed, Pending, Rejected
+const COLORS = ['#3D4C38', '#D4AF37', '#e74c3c']; 
 
 const Requests = () => {
   const [requests, setRequests] = useState(guideRequestsData);
@@ -22,7 +21,7 @@ const Requests = () => {
     setRequests(updatedRequests);
   };
 
-  // --- CHART DATA PREP ---
+  // --- CHART DATA ---
   const getChartData = () => {
     const counts = { confirmed: 0, pending: 0, rejected: 0 };
     requests.forEach(r => counts[r.status]++);
@@ -31,12 +30,6 @@ const Requests = () => {
       { name: 'Pending', value: counts.pending },
       { name: 'Rejected', value: counts.rejected }
     ];
-  };
-
-  // --- ANIMATION VARIANTS ---
-  const containerVars = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const itemVars = {
@@ -54,9 +47,7 @@ const Requests = () => {
 
   return (
     <motion.div 
-      variants={containerVars}
-      initial="hidden"
-      animate="visible"
+      initial="hidden" animate="visible"
       className="w-full space-y-8 pb-20"
     >
       
@@ -69,7 +60,7 @@ const Requests = () => {
              Booking Requests
            </h1>
            <p className="text-[#5A6654] text-sm leading-relaxed mb-6 max-w-xl">
-             Manage your incoming trip requests. Confirm availablity or decline requests to keep your schedule updated.
+             Manage incoming trip requests. Review guest details, special requests, and contact them directly.
            </p>
            
            <div className="grid grid-cols-3 gap-4">
@@ -91,13 +82,7 @@ const Requests = () => {
               <ResponsiveContainer width="100%" height="100%">
                  <PieChart>
                     <Pie
-                       data={getChartData()}
-                       cx="50%"
-                       cy="50%"
-                       innerRadius={50}
-                       outerRadius={70}
-                       paddingAngle={5}
-                       dataKey="value"
+                       data={getChartData()} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value"
                     >
                        {getChartData().map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
@@ -113,129 +98,91 @@ const Requests = () => {
       </div>
 
 
-      {/* ==================== 2. REQUESTS LIST ==================== */}
-      <motion.div variants={itemVars} className="bg-[#F3F1E7] rounded-2xl border border-[#DEDBD0] shadow-lg shadow-[#3D4C38]/5 overflow-hidden">
-         
-         {/* --- DESKTOP TABLE --- */}
-         <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left">
-               <thead className="bg-[#E2E6D5]/50 border-b border-[#DEDBD0]">
-                  <tr>
-                     {['Tourist', 'Destination', 'Scheduled Date', 'Status', 'Actions'].map((head) => (
-                        <th key={head} className="px-6 py-5 text-[10px] font-bold text-[#5A6654] uppercase tracking-widest">
-                           {head}
-                        </th>
-                     ))}
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-[#DEDBD0]">
-                  <AnimatePresence>
-                     {requests.length > 0 ? (
-                       requests.map((req) => (
-                        <motion.tr 
-                          key={req.id} 
-                          initial={{ opacity: 0 }} 
-                          animate={{ opacity: 1 }} 
-                          exit={{ opacity: 0 }}
-                          className="hover:bg-[#E2E6D5]/30 transition-colors group"
-                        >
-                           <td className="px-6 py-4 font-bold text-[#2B3326] text-sm flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-[#DEDBD0] flex items-center justify-center text-[#5A6654]"><FaUser size={12} /></div>
-                              {req.touristName}
-                           </td>
-                           <td className="px-6 py-4 text-sm text-[#5A6654]">
-                              <span className="flex items-center gap-1"><FaMapMarkerAlt size={12} /> {req.place}</span>
-                           </td>
-                           <td className="px-6 py-4 text-sm text-[#5A6654] font-mono">{req.date}</td>
-                           <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border w-fit block text-center ${getStatusBadge(req.status)}`}>
-                                 {req.status}
-                              </span>
-                           </td>
-                           <td className="px-6 py-4">
-                              {req.status === 'pending' ? (
-                                <div className="flex gap-2">
-                                   <button 
-                                     onClick={() => handleAction(req.id, 'confirmed')}
-                                     className="p-2 bg-[#3D4C38] text-[#F3F1E7] rounded-lg hover:bg-[#2B3326] transition-colors shadow-sm"
-                                     title="Accept"
-                                   >
-                                      <FaCheckCircle />
-                                   </button>
-                                   <button 
-                                     onClick={() => handleAction(req.id, 'rejected')}
-                                     className="p-2 bg-white border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors shadow-sm"
-                                     title="Reject"
-                                   >
-                                      <FaTimesCircle />
-                                   </button>
-                                </div>
-                              ) : (
-                                <span className="text-xs text-[#5A6654] italic">
-                                   {req.status === 'confirmed' ? 'Scheduled' : 'Closed'}
-                                </span>
-                              )}
-                           </td>
-                        </motion.tr>
-                       ))
-                     ) : (
-                       <tr><td colSpan="5" className="p-8 text-center text-[#5A6654]">No requests found.</td></tr>
-                     )}
-                  </AnimatePresence>
-               </tbody>
-            </table>
-         </div>
-
-         {/* --- MOBILE CARDS --- */}
-         <div className="md:hidden flex flex-col divide-y divide-[#DEDBD0]">
-            <AnimatePresence>
-               {requests.map((req) => (
-                  <motion.div 
-                    key={req.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="p-6 flex flex-col gap-4 bg-[#F3F1E7]"
-                  >
-                     <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 rounded-full bg-[#E2E6D5] flex items-center justify-center text-[#3D4C38]"><FaUser /></div>
-                           <div>
-                              <h4 className="font-bold text-[#2B3326] text-lg">{req.touristName}</h4>
-                              <p className="text-xs text-[#5A6654] flex items-center gap-1"><FaMapMarkerAlt size={10} /> {req.place}</p>
+      {/* ==================== 2. REQUESTS LIST (Expanded Cards) ==================== */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+         <AnimatePresence>
+            {requests.map((req) => (
+               <motion.div 
+                 key={req.id}
+                 layout
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 exit={{ opacity: 0, scale: 0.95 }}
+                 className="bg-[#F3F1E7] rounded-2xl p-6 border border-[#DEDBD0] shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+               >
+                  {/* Top Row: User & Status */}
+                  <div className="flex justify-between items-start mb-6">
+                     <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-[#E2E6D5] flex items-center justify-center text-[#3D4C38] text-2xl border-2 border-white shadow-sm">
+                           <FaUser />
+                        </div>
+                        <div>
+                           <h4 className="font-['Oswald'] font-bold text-[#2B3326] text-xl uppercase">{req.touristName}</h4>
+                           <div className="flex items-center gap-2 text-xs text-[#5A6654] font-bold uppercase tracking-wide">
+                              <span className="flex items-center gap-1"><FaMapMarkerAlt /> {req.place}</span>
                            </div>
                         </div>
-                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide border ${getStatusBadge(req.status)}`}>
-                           {req.status}
-                        </span>
                      </div>
+                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${getStatusBadge(req.status)}`}>
+                        {req.status}
+                     </span>
+                  </div>
 
-                     <div className="flex items-center gap-2 text-xs text-[#5A6654] border-t border-b border-[#DEDBD0]/50 py-3">
-                        <FaClock /> Requested Date: <span className="font-bold text-[#2B3326]">{req.date}</span>
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 gap-4 mb-6 bg-white/50 p-4 rounded-xl border border-[#DEDBD0]/50">
+                     <div>
+                        <p className="text-[10px] text-[#5A6654] font-bold uppercase tracking-widest mb-1">Date & Time</p>
+                        <div className="flex items-center gap-2 text-sm font-bold text-[#2B3326]">
+                           <FaClock className="text-[#3D4C38]" /> {req.date} <span className="text-[#5A6654] font-normal">at</span> {req.time}
+                        </div>
                      </div>
-
-                     {req.status === 'pending' && (
-                        <div className="grid grid-cols-2 gap-3">
-                           <button 
-                             onClick={() => handleAction(req.id, 'confirmed')}
-                             className="py-3 bg-[#3D4C38] text-[#F3F1E7] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#2B3326] transition-colors flex items-center justify-center gap-2"
-                           >
-                              <FaCheckCircle /> Accept
-                           </button>
-                           <button 
-                             onClick={() => handleAction(req.id, 'rejected')}
-                             className="py-3 bg-white border border-red-200 text-red-500 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
-                           >
-                              <FaTimesCircle /> Reject
-                           </button>
+                     <div>
+                        <p className="text-[10px] text-[#5A6654] font-bold uppercase tracking-widest mb-1">Guests</p>
+                        <div className="flex items-center gap-2 text-sm font-bold text-[#2B3326]">
+                           <FaUserFriends className="text-[#3D4C38]" /> {req.guests} People
+                        </div>
+                     </div>
+                     {req.requests && (
+                        <div className="col-span-2 pt-2 border-t border-[#DEDBD0]/50">
+                           <p className="text-[10px] text-[#5A6654] font-bold uppercase tracking-widest mb-1">Special Request</p>
+                           <div className="flex items-start gap-2 text-sm text-[#2B3326] italic">
+                              <FaCommentDots className="text-[#3D4C38] mt-1 shrink-0" /> "{req.requests}"
+                           </div>
                         </div>
                      )}
-                  </motion.div>
-               ))}
-            </AnimatePresence>
-         </div>
+                  </div>
 
-      </motion.div>
+                  {/* Contact Actions */}
+                  <div className="flex gap-3 mb-6">
+                     <a href={`tel:${req.phone1}`} className="flex-1 py-3 bg-[#E2E6D5] text-[#3D4C38] rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#3D4C38] hover:text-[#F3F1E7] transition-colors flex items-center justify-center gap-2">
+                        <FaPhoneAlt /> Call
+                     </a>
+                     <a href={`https://wa.me/${req.phone1}`} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-[#E2E6D5] text-[#25D366] rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#25D366] hover:text-white transition-colors flex items-center justify-center gap-2">
+                        <FaWhatsapp className="text-lg" /> WhatsApp
+                     </a>
+                  </div>
+
+                  {/* Footer Actions (Approve/Reject) */}
+                  {req.status === 'pending' && (
+                     <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#DEDBD0]">
+                        <button 
+                           onClick={() => handleAction(req.id, 'confirmed')}
+                           className="py-3 bg-[#3D4C38] text-[#F3F1E7] rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#2B3326] transition-colors flex items-center justify-center gap-2"
+                        >
+                           <FaCheckCircle /> Accept Request
+                        </button>
+                        <button 
+                           onClick={() => handleAction(req.id, 'rejected')}
+                           className="py-3 bg-white border border-red-200 text-red-500 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                        >
+                           <FaTimesCircle /> Reject
+                        </button>
+                     </div>
+                  )}
+               </motion.div>
+            ))}
+         </AnimatePresence>
+      </div>
 
     </motion.div>
   );

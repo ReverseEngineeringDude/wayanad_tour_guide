@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCompass, FaCalendarCheck, FaUserCircle, FaSignOutAlt, FaTree } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const GuideLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showLogout, setShowLogout] = useState(false);
+  const { logout } = useAuth();
 
   const menuItems = [
     { path: '/guide', label: 'Dashboard', icon: <FaCompass /> },
@@ -15,21 +17,18 @@ const GuideLayout = () => {
   ];
 
   const handleLogout = () => {
+    logout();
     setShowLogout(false);
-    navigate('/'); // Redirect to Home
+    navigate('/login');
   };
 
   return (
-    // Outer Container: Fixed Screen Height
     <div className="flex h-screen bg-[#E2E6D5] text-[#2B3326] font-['Poppins'] overflow-hidden selection:bg-[#3D4C38] selection:text-[#F3F1E7]">
       
-      {/* --- BACKGROUND TEXTURE --- */}
       <div className="fixed inset-0 opacity-[0.04] pointer-events-none z-0 bg-[url('https://www.transparenttextures.com/patterns/noise.png')]"></div>
 
       {/* ==================== DESKTOP SIDEBAR ==================== */}
       <aside className="w-72 bg-[#2B3326] text-[#F3F1E7] hidden md:flex flex-col relative z-20 shadow-2xl shadow-[#3D4C38]/20 flex-shrink-0">
-        
-        {/* Header */}
         <div className="p-8 border-b border-[#F3F1E7]/10">
           <div className="flex items-center gap-3 mb-1">
              <div className="w-8 h-8 bg-[#8B9D77] text-[#2B3326] rounded-lg flex items-center justify-center shadow-lg">
@@ -40,7 +39,6 @@ const GuideLayout = () => {
           <p className="text-[10px] uppercase tracking-[0.2em] text-[#F3F1E7]/50 pl-11">Partner Portal</p>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto custom-scrollbar">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -50,7 +48,6 @@ const GuideLayout = () => {
                 to={item.path}
                 className={`relative flex items-center gap-4 px-6 py-4 rounded-xl transition-colors duration-300 group z-10 ${isActive ? 'text-[#2B3326]' : 'text-[#F3F1E7] hover:text-[#8B9D77]'}`}
               >
-                {/* Active Pill */}
                 {isActive && (
                   <motion.div
                     layoutId="activeTabGuide"
@@ -70,7 +67,6 @@ const GuideLayout = () => {
           })}
         </nav>
 
-        {/* Logout Button */}
         <div className="p-6 border-t border-[#F3F1E7]/10 mt-auto">
           <button 
             onClick={() => setShowLogout(true)}
@@ -87,10 +83,8 @@ const GuideLayout = () => {
       <main className="flex-1 flex flex-col relative z-10 min-w-0 bg-[#E2E6D5]">
         
         {/* Scrollable Container */}
+        {/* REMOVED: The <div className="md:hidden h-20..."> spacer block */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 lg:p-12 pb-32 md:pb-12">
-           {/* Mobile Header Spacer */}
-           <div className="md:hidden h-20 w-full mb-6"></div>
-           
            <Outlet />
         </div>
 
@@ -121,12 +115,11 @@ const GuideLayout = () => {
              )
            })}
            
-           {/* Mobile Logout Trigger */}
            <button 
              onClick={() => setShowLogout(true)}
              className="flex flex-col items-center gap-1 p-2 text-[#F3F1E7]/50 hover:text-[#FF6B6B]"
            >
-              <FaSignOutAlt className="text-lg" />
+             <FaSignOutAlt className="text-lg" />
            </button>
         </nav>
       </div>

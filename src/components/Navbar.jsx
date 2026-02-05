@@ -1,21 +1,37 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTree, FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { FaTree, FaBars, FaTimes, FaUser, FaSignOutAlt, FaUserPlus } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Get current user & logout function from context
+  const { currentUser, logout } = useAuth(); 
 
   const navLinks = [
     { title: "Home", path: "/" },
     { title: "Explore", path: "/explore" },
+    ...(currentUser ? [{ title: "My Bookings", path: "/my-bookings" }] : []),
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setIsMobileOpen(false);
+  };
+
+  const displayName = currentUser?.displayName || "Traveler";
+
+  // Common button style class for both Login and Register
+  const authButtonStyle = "flex items-center gap-2 px-6 py-2.5 bg-[#3D4C38] border border-[#3D4C38] rounded-full font-['Oswald'] font-bold text-xs uppercase tracking-widest text-[#F3F1E7] hover:bg-[#2B3326] transition-all shadow-md hover:shadow-lg";
 
   return (
     <>
-      {/* ==================== INTEGRATED HERO HEADER ==================== */}
       <motion.nav 
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -24,7 +40,7 @@ const Navbar = () => {
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
           
-          {/* ================= LOGO (Left) ================= */}
+          {/* LOGO */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="bg-[#3D4C38] text-[#F3F1E7] p-2.5 rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-300">
               <FaTree className="text-sm" />
@@ -39,7 +55,7 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* ================= DESKTOP LINKS (Center) ================= */}
+          {/* DESKTOP LINKS */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link, index) => (
               <Link 
@@ -52,20 +68,14 @@ const Navbar = () => {
                 `}
               >
                 <span className="relative z-10">{link.title}</span>
-                
-                {/* Underline Hover Effect */}
                 {hoveredIndex === index && (
                   <motion.span 
                     layoutId="nav-underline"
                     className="absolute bottom-0 left-0 w-full h-[2px] bg-[#3D4C38]"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    exit={{ scaleX: 0 }}
+                    initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} exit={{ scaleX: 0 }}
                     transition={{ type: "spring", bounce: 0, duration: 0.4 }}
                   />
                 )}
-                
-                {/* Active Dot */}
                 {location.pathname === link.path && hoveredIndex !== index && (
                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#3D4C38] rounded-full"></span>
                 )}
@@ -73,61 +83,86 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* ================= ACTION / MOBILE TOGGLE (Right) ================= */}
+          {/* ACTION BUTTONS */}
           <div className="flex items-center gap-4">
-            
-            {/* Desktop Login */}
-            <Link 
-              to="/login"
-              className="hidden md:flex items-center gap-2 px-6 py-2.5  border border-[#3D4C38]  rounded-full font-['Oswald'] font-bold text-xs uppercase tracking-widest bg-[#3D4C38] text-[#F3F1E7] transition-all"
-            >
-              <FaUser className="text-[10px]" /> Login
-            </Link>
+            <div className="hidden md:flex items-center gap-3">
+              {currentUser ? (
+                <div className="flex items-center gap-3">
+                  
+                  {/* CHANGED: User Name in Styled Div with Background */}
+                  <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-[#F3F1E7] border border-[#3D4C38]/20 rounded-full shadow-sm">
+                      <div className="bg-[#3D4C38] text-[#F3F1E7] p-1 rounded-full">
+                         <FaUser size={10} />
+                      </div>
+                      <div className="flex flex-col">
+                         <span className="text-[8px] text-[#5A6654] font-bold uppercase tracking-widest leading-none">Welcome</span>
+                         <span className="text-[10px] font-bold text-[#3D4C38] uppercase tracking-wider leading-none">{displayName}</span>
+                      </div>
+                  </div>
 
-            {/* Mobile Hamburger */}
-            <button 
-              onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="md:hidden p-2 text-[#3D4C38] hover:bg-[#3D4C38]/10 rounded-lg transition-colors"
-            >
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-5 py-2.5 border border-[#3D4C38] rounded-full font-['Oswald'] font-bold text-xs uppercase tracking-widest  bg-[#3D4C38] text-[#F3F1E7] transition-all"
+                  >
+                    <FaSignOutAlt /> <span className="hidden xl:inline">Logout</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* CHANGED: Login Button now uses the exact same style as Register */}
+                  <Link to="/login" className={authButtonStyle}>
+                     <FaUser className="text-[10px]" /> Login
+                  </Link>
+                  
+                  <Link to="/register" className={authButtonStyle}>
+                    <FaUserPlus className="text-[10px]" /> Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="md:hidden p-2 text-[#3D4C38] hover:bg-[#3D4C38]/10 rounded-lg transition-colors">
               {isMobileOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
             </button>
           </div>
         </div>
       </motion.nav>
 
-      {/* ================= MOBILE MENU OVERLAY ================= */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {isMobileOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="absolute top-20 left-0 w-full z-40 md:hidden bg-[#E2E6D5] border-b border-[#DEDBD0] overflow-hidden shadow-xl"
           >
             <div className="container mx-auto px-6 py-8 flex flex-col gap-4">
               {navLinks.map((link, index) => (
-                <Link 
-                  key={index}
-                  to={link.path}
-                  onClick={() => setIsMobileOpen(false)}
-                  className={`text-xl font-['Oswald'] font-bold uppercase tracking-widest transition-colors
-                    ${location.pathname === link.path ? 'text-[#3D4C38]' : 'text-[#5A6654] hover:text-[#2B3326]'}
-                  `}
-                >
+                <Link key={index} to={link.path} onClick={() => setIsMobileOpen(false)} className="text-xl font-['Oswald'] font-bold uppercase tracking-widest text-[#5A6654] hover:text-[#2B3326]">
                   {link.title}
                 </Link>
               ))}
-
               <div className="h-[1px] w-full bg-[#DEDBD0] my-2"></div>
-
-              <Link 
-                to="/login" 
-                onClick={() => setIsMobileOpen(false)}
-                className="flex items-center gap-3 text-[#3D4C38] font-bold uppercase tracking-widest text-sm"
-              >
-                <FaUser /> Login Account
-              </Link>
+              {currentUser ? (
+                <>
+                   {/* Mobile View User Display */}
+                   <div className="flex items-center gap-3 px-4 py-3 bg-[#F3F1E7] rounded-xl w-fit">
+                      <div className="bg-[#3D4C38] text-[#F3F1E7] p-2 rounded-full">
+                         <FaUser size={12} />
+                      </div>
+                      <span className="text-[#3D4C38] font-bold uppercase tracking-widest text-sm">{displayName}</span>
+                   </div>
+                   <button onClick={handleLogout} className="text-left text-[#5A6654] font-bold uppercase tracking-widest text-sm hover:text-red-600 transition-colors flex items-center gap-2 mt-2">
+                     <FaSignOutAlt /> Logout
+                   </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" onClick={() => setIsMobileOpen(false)} className="flex items-center gap-3 text-[#3D4C38] font-bold uppercase tracking-widest text-sm"><FaUser /> Login</Link>
+                  <Link to="/register" onClick={() => setIsMobileOpen(false)} className="flex items-center gap-3 text-[#3D4C38] font-bold uppercase tracking-widest text-sm"><FaUserPlus /> Create Account</Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}

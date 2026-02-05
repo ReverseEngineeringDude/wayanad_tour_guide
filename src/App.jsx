@@ -26,6 +26,7 @@ import Requests from './pages/guide/Requests';
 
 import PlaceDetails from './pages/user/PlaceDetails';
 import GuideBooking from './pages/user/GuideBooking';
+import UserBookings from './pages/user/UserBookings';
 
 function App() {
 
@@ -41,6 +42,8 @@ function App() {
         {/* --- Public / User Routes (With Standard Navbar) --- */}
         <Route path="/" element={<><Navbar /><Home /></>} />
         <Route path="/explore" element={<><Navbar /><Explore /></>} />
+        <Route path="/my-bookings" element={<><Navbar /><UserBookings /></>} />
+        
         <Route path="/place/:id" element={<PlaceDetails />} />
         <Route path="/book-guide/:guideId" element={<GuideBooking />} />
 

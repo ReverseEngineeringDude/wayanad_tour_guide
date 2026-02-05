@@ -1,29 +1,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
-} from 'recharts';
-import { FaMapMarkerAlt, FaStar, FaClock, FaWallet, FaArrowUp, FaEllipsisH, FaCalendarAlt } from 'react-icons/fa';
-
-// --- MOCK DATA ---
-const earningsData = [
-  { name: 'Mon', amount: 120 },
-  { name: 'Tue', amount: 200 },
-  { name: 'Wed', amount: 150 },
-  { name: 'Thu', amount: 280 },
-  { name: 'Fri', amount: 350 },
-  { name: 'Sat', amount: 450 },
-  { name: 'Sun', amount: 300 },
-];
-
-const recentActivity = [
-  { id: 1, text: 'Accepted trip to "Edakkal Caves"', time: '2 hours ago', type: 'success' },
-  { id: 2, text: 'Completed trip with John Smith', time: 'Yesterday', type: 'info' },
-  { id: 3, text: 'New review received: 5 Stars', time: '2 days ago', type: 'review' },
-];
+import { FaMapMarkerAlt, FaClock, FaCheckCircle, FaUser, FaCalendarDay } from 'react-icons/fa';
+import { allBookingsData } from '../../data/mockData';
 
 const GuideHome = () => {
   
+  // --- MOCK LOGIC: Get data for "Rahul K." (ID: 101) ---
+  const myBookings = allBookingsData.filter(b => b.guideId === 101);
+  
+  const pendingCount = myBookings.filter(b => b.status === 'pending').length;
+  const confirmedCount = myBookings.filter(b => b.status === 'confirmed').length;
+  
+  // Get recent 3 accepted bookings
+  const recentAccepted = myBookings
+    .filter(b => b.status === 'confirmed')
+    .slice(0, 3);
+
   // Animation Variants
   const containerVars = {
     hidden: { opacity: 0 },
@@ -50,7 +42,7 @@ const GuideHome = () => {
             Guide Dashboard
           </h1>
           <p className="text-[#5A6654] text-sm mt-1">
-            Welcome back, Rahul. Here's your activity overview.
+            Welcome back, Rahul. You have {pendingCount} new requests.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -64,94 +56,81 @@ const GuideHome = () => {
       {/* ==================== 2. STATS GRID ==================== */}
       <motion.div 
         variants={itemVars} 
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
         <StatCard 
           title="Pending Requests" 
-          value="02" 
-          subtext="Requires action"
+          value={pendingCount} 
+          subtext="Waiting for your approval"
           icon={<FaClock />} 
-          accentColor="text-[#D4AF37]"
+          accentColor="bg-[#D4AF37] text-[#2B3326]"
         />
         <StatCard 
-          title="Total Trips" 
-          value="12" 
-          subtext="This month"
+          title="Upcoming Trips" 
+          value={confirmedCount} 
+          subtext="Confirmed bookings"
           icon={<FaMapMarkerAlt />} 
-          accentColor="text-[#3D4C38]"
-        />
-        <StatCard 
-          title="Avg. Rating" 
-          value="4.8" 
-          subtext="Based on 45 reviews"
-          icon={<FaStar />} 
-          accentColor="text-[#D4AF37]"
+          accentColor="bg-[#3D4C38] text-[#F3F1E7]"
         />
       </motion.div>
 
 
-      {/* ==================== 3. CONTENT SECTION ==================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Earnings Chart */}
-        <motion.div 
-          variants={itemVars} 
-          className="lg:col-span-2 bg-[#F3F1E7] p-6 rounded-2xl shadow-xl shadow-[#3D4C38]/5 border border-[#DEDBD0]"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-['Oswald'] font-bold text-xl text-[#2B3326] uppercase">Weekly Earnings</h3>
-            <button className="text-[#3D4C38] hover:bg-[#E2E6D5] p-2 rounded-full transition-colors"><FaEllipsisH /></button>
-          </div>
-          
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={earningsData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8B9D77" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8B9D77" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#DEDBD0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#5A6654', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#5A6654', fontSize: 12}} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#2B3326', border: 'none', borderRadius: '8px', color: '#F3F1E7' }}
-                  itemStyle={{ color: '#F3F1E7' }}
-                  formatter={(value) => [`$${value}`, 'Earnings']}
-                />
-                <Area type="monotone" dataKey="amount" stroke="#3D4C38" strokeWidth={3} fillOpacity={1} fill="url(#colorEarnings)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
+      {/* ==================== 3. RECENT ACCEPTED BOOKINGS ==================== */}
+      <motion.div variants={itemVars} className="bg-[#F3F1E7] p-6 md:p-8 rounded-2xl shadow-xl shadow-[#3D4C38]/5 border border-[#DEDBD0]">
+         <div className="flex justify-between items-center mb-6">
+            <h3 className="font-['Oswald'] font-bold text-xl text-[#2B3326] uppercase">Recent Accepted Bookings</h3>
+            <span className="text-[#3D4C38] bg-[#3D4C38]/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+               Next 7 Days
+            </span>
+         </div>
 
-        {/* Recent Activity Feed */}
-        <motion.div 
-          variants={itemVars} 
-          className="bg-[#F3F1E7] p-6 rounded-2xl shadow-xl shadow-[#3D4C38]/5 border border-[#DEDBD0]"
-        >
-          <div className="flex justify-between items-center mb-6">
-             <h3 className="font-['Oswald'] font-bold text-xl text-[#2B3326] uppercase">Activity Log</h3>
-             <FaCalendarAlt className="text-[#3D4C38] opacity-50" />
-          </div>
+         <div className="grid gap-4">
+            {recentAccepted.length > 0 ? (
+               recentAccepted.map((booking) => (
+                  <div key={booking.id} className="bg-white p-5 rounded-xl border border-[#DEDBD0] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-[#3D4C38] transition-colors">
+                     
+                     {/* Left: Info */}
+                     <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-[#E2E6D5] flex items-center justify-center text-[#5A6654] font-bold text-lg">
+                           {booking.touristName.charAt(0)}
+                        </div>
+                        <div>
+                           <h4 className="font-bold text-[#2B3326] text-lg">{booking.touristName}</h4>
+                           <div className="flex items-center gap-2 text-xs text-[#5A6654] mt-1">
+                              <span className="flex items-center gap-1"><FaMapMarkerAlt /> {booking.place}</span>
+                              <span className="w-1 h-1 bg-[#DEDBD0] rounded-full"></span>
+                              <span className="flex items-center gap-1"><FaUser /> {booking.guests || 2} Guests</span>
+                           </div>
+                        </div>
+                     </div>
 
-          <div className="space-y-6">
-            {recentActivity.map((item, index) => (
-               <div key={item.id} className="relative pl-6 border-l-2 border-[#DEDBD0]">
-                  <div className={`absolute -left-[5px] top-1 w-2 h-2 rounded-full ${item.type === 'success' ? 'bg-[#3D4C38]' : 'bg-[#D4AF37]'}`}></div>
-                  <p className="text-sm font-bold text-[#2B3326]">{item.text}</p>
-                  <p className="text-[10px] text-[#5A6654] uppercase tracking-widest mt-1">{item.time}</p>
+                     {/* Middle: Date/Time */}
+                     <div className="flex items-center gap-4 bg-[#F3F1E7]/50 px-4 py-2 rounded-lg border border-[#DEDBD0]/50">
+                        <div className="text-center">
+                           <p className="text-[10px] font-bold text-[#5A6654] uppercase tracking-widest">Date</p>
+                           <p className="text-sm font-bold text-[#2B3326]">{booking.date}</p>
+                        </div>
+                        <div className="w-px h-8 bg-[#DEDBD0]"></div>
+                        <div className="text-center">
+                           <p className="text-[10px] font-bold text-[#5A6654] uppercase tracking-widest">Time</p>
+                           <p className="text-sm font-bold text-[#2B3326]">{booking.time || '09:00 AM'}</p>
+                        </div>
+                     </div>
+
+                     {/* Right: Status */}
+                     <div className="flex items-center gap-2 text-[#3D4C38] bg-[#3D4C38]/5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest">
+                        <FaCheckCircle /> Confirmed
+                     </div>
+
+                  </div>
+               ))
+            ) : (
+               <div className="text-center py-10 text-[#5A6654]">
+                  No upcoming trips scheduled.
                </div>
-            ))}
-          </div>
-
-          <button className="w-full mt-8 py-3 rounded-xl border border-[#DEDBD0] text-[#5A6654] text-xs font-bold uppercase tracking-widest hover:bg-[#E2E6D5] transition-colors">
-             View Full History
-          </button>
-        </motion.div>
-
-      </div>
+            )}
+         </div>
+      </motion.div>
 
     </motion.div>
   );
@@ -161,7 +140,7 @@ const GuideHome = () => {
 const StatCard = ({ title, value, subtext, icon, accentColor }) => (
   <div className="bg-[#F3F1E7] p-6 rounded-2xl shadow-md border border-[#DEDBD0] hover:border-[#3D4C38] transition-colors group">
     <div className="flex justify-between items-start mb-4">
-      <div className={`p-3 bg-[#E2E6D5] rounded-xl text-lg group-hover:bg-[#3D4C38] group-hover:text-[#F3F1E7] transition-colors ${accentColor}`}>
+      <div className={`p-3 rounded-xl text-lg shadow-sm transition-transform group-hover:scale-110 ${accentColor}`}>
         {icon}
       </div>
     </div>
@@ -169,7 +148,7 @@ const StatCard = ({ title, value, subtext, icon, accentColor }) => (
       <p className="text-[#5A6654] text-xs font-bold uppercase tracking-widest mb-1">{title}</p>
       <div className="flex items-end gap-2">
          <h4 className="text-4xl font-['Oswald'] font-bold text-[#2B3326]">{value}</h4>
-         <span className="text-[10px] text-[#5A6654] mb-2">{subtext}</span>
+         <span className="text-[10px] text-[#5A6654] mb-2 font-medium">{subtext}</span>
       </div>
     </div>
   </div>
