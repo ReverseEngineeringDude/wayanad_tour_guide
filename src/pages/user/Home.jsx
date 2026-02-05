@@ -51,11 +51,7 @@ const Home = () => {
           animate="visible"
           className="w-full lg:w-1/2 flex flex-col justify-center items-start z-20 pb-4 lg:pb-0 h-[40%] lg:h-auto"
         >
-           {/* Logo Badge */}
-           <motion.div variants={itemVars} className="flex items-center gap-2 mb-4 lg:mb-8 bg-[#F3F1E7] px-3 py-1.5 lg:px-4 lg:py-2 rounded-full border border-[#DEDBD0] shadow-sm">
-              <FaTree className="text-[#3D4C38]" />
-              <span className="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-[#5A6654]">Official Guide</span>
-           </motion.div>
+      
 
            {/* Main Headline */}
            <motion.h1 variants={itemVars} className="font-['Oswald'] text-5xl sm:text-6xl lg:text-8xl font-bold uppercase leading-[0.9] text-[#1F261C] mb-4 lg:mb-6">

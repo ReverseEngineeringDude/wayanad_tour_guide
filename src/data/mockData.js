@@ -1,31 +1,6 @@
 // src/data/mockData.js
 
-export const placesData = [
-  {
-    id: 1,
-    name: "Edakkal Caves",
-    description: "Ancient caves with prehistoric petroglyphs on top of Ambukuthi Hills.",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4f3KCPk8Iz9PJ_7I44lp8Xc5AQ3EF_YYjxw&s",
-  },
-  {
-    id: 2,
-    name: "Banasura Sagar Dam",
-    description: "The largest earth dam in India and the second largest in Asia.",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4f3KCPk8Iz9PJ_7I44lp8Xc5AQ3EF_YYjxw&s", 
-  },
-  {
-    id: 3,
-    name: "Soochipara Waterfalls",
-    description: "A three-tiered waterfall surrounded by deciduous, evergreen and montane forests.",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4f3KCPk8Iz9PJ_7I44lp8Xc5AQ3EF_YYjxw&s",
-  }
-];
 
-export const guidesData = [
-  { id: 101, name: "Rahul K.", experience: "5 Years", languages: ["Malayalam", "English"] },
-  { id: 102, name: "Fatima S.", experience: "3 Years", languages: ["Malayalam", "Hindi"] },
-  { id: 103, name: "Arjun M.", experience: "7 Years", languages: ["English", "Arabic"] },
-];
 
 export const myBookingsData = [
   { id: 1, place: "Edakkal Caves", guideName: "Rahul K.", date: "2026-02-10", status: "confirmed" },
@@ -89,3 +64,75 @@ export const allBookingsData = [
   { id: 304, touristName: "Priya P.", guideName: "Rahul K.", place: "Pookode Lake", date: "2026-02-18", status: "confirmed", amount: "₹600" },
   { id: 305, touristName: "Anjali Menon", guideName: "Suresh P.", place: "Chembra Peak", date: "2026-03-01", status: "pending", amount: "₹1500" },
 ];
+
+export const placesData = [
+  {
+    id: 1,
+    name: "Edakkal Caves",
+    description: "A journey into the prehistoric past, these caves feature Stone Age carvings.",
+    history: "The Edakkal Caves are believed to be one of the earliest centers of human settlement. Inside the caves, you will find pictorial writings believed to date back to 6000 BC. The caves were discovered by Fred Fawcett, a police official of the Malabar District in 1890.",
+    // NEW FIELDS
+    ticketPrice: "₹50 / Person",
+    openTime: "09:00 AM",
+    closeTime: "04:00 PM",
+    locationUrl: "https://www.google.com/maps/embed?pb=...", // Add real embed link
+    gallery: [
+       "https://www.sterlingholidays.com/activities/vythiri/sterling-vythiri-wayanad-edakkal-caves.jpg.imgw.1280.1280.jpeg",
+       "https://www.sterlingholidays.com/activities/vythiri/sterling-vythiri-wayanad-edakkal-caves.jpg.imgw.1280.1280.jpeg",
+       "https://www.sterlingholidays.com/activities/vythiri/sterling-vythiri-wayanad-edakkal-caves.jpg.imgw.1280.1280.jpeg"
+    ],
+    image: "https://www.sterlingholidays.com/activities/vythiri/sterling-vythiri-wayanad-edakkal-caves.jpg.imgw.1280.1280.jpeg",
+  },
+  {
+    id: 2,
+    name: "Banasura Sagar Dam",
+    description: "The largest earth dam in India and the second largest in Asia.",
+    history: "Constructed in 1979, the Banasura Sagar Dam supports the Kakkayam Hydroelectric power project. It is named after Banasura, the son of King Mahabali.",
+    // NEW FIELDS
+    ticketPrice: "₹40 / Person",
+    openTime: "08:30 AM",
+    closeTime: "05:30 PM",
+    locationUrl: "https://www.google.com/maps/embed?pb=...", 
+    gallery: [
+       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+    ],
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV3N1GhJgAD4b6QQiMcg3_ze2dA4orWvSPsa_Z8ehrknxRbaxFbbJ3YskLU8jOEWmGQOg&usqp=CAU",
+  }
+];
+
+export const guidesData = [
+  { 
+    id: 101, 
+    name: "Rahul K.", 
+    experience: "5 Years", 
+    languages: ["Malayalam", "English"], 
+    rate: 800,
+    bio: "I grew up near the caves and know every carving by heart. I specialize in historical tours.",
+    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600" 
+  },
+  { 
+    id: 102, 
+    name: "Fatima S.", 
+    experience: "3 Years", 
+    languages: ["Malayalam", "Hindi", "English"], 
+    rate: 750,
+    bio: "Nature enthusiast. I love showing families the best photo spots in Wayanad.",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600"
+  },
+  { 
+    id: 103, 
+    name: "Arjun M.", 
+    experience: "7 Years", 
+    languages: ["English", "Arabic"], 
+    rate: 1000,
+    bio: "Certified eco-tourism guide. I ensure a safe and informative trekking experience.",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600"
+  },
+];
+// ... rest of data

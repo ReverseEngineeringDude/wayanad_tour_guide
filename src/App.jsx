@@ -1,12 +1,12 @@
 // src/App.jsx
-import { useEffect } from 'react'; // 1. Import useEffect
+import { useEffect , useRef } from 'react'; // 1. Import useEffect
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Lenis from 'lenis'; // 2. Import Lenis
 
 import Navbar from './components/Navbar';
 import Home from './pages/user/Home';
 import Explore from './pages/user/Explore';
-import UserBookings from './pages/user/UserBookings';
+
 
 // Guide Imports
 import GuideLayout from './components/GuideLayout';
@@ -24,30 +24,16 @@ import ManageUsers from './pages/admin/ManageUsers';
 import ViewBookings from './pages/admin/ViewBooking';
 import Requests from './pages/guide/Requests';
 
+import PlaceDetails from './pages/user/PlaceDetails';
+import GuideBooking from './pages/user/GuideBooking';
+
 function App() {
 
+ 
   // 3. Initialize Lenis Smooth Scroll
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2, // Adjust speed (default is 1.2)
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Smooth easing
-      smoothWheel: true,
-      gestureOrientation: 'vertical',
-    });
 
-    // Request Animation Frame loop (Required for Lenis)
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+ 
 
-    requestAnimationFrame(raf);
-
-    // Cleanup on unmount
-    return () => {
-      lenis.destroy();
-    };
-  }, []);
 
   return (
     <Router>
@@ -55,7 +41,8 @@ function App() {
         {/* --- Public / User Routes (With Standard Navbar) --- */}
         <Route path="/" element={<><Navbar /><Home /></>} />
         <Route path="/explore" element={<><Navbar /><Explore /></>} />
-        <Route path="/my-bookings" element={<><Navbar /><UserBookings /></>} />
+        <Route path="/place/:id" element={<PlaceDetails />} />
+        <Route path="/book-guide/:guideId" element={<GuideBooking />} />
 
         {/* --- Guide Dashboard Routes (With Sidebar Layout) --- */}
         <Route path="/guide" element={<GuideLayout />}>
