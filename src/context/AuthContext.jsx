@@ -1,4 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { auth, db } from '../firebase/config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -9,67 +17,75 @@ export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from LocalStorage on startup
+  // Monitor Auth State
   useEffect(() => {
-    const storedUser = localStorage.getItem('mockUser');
-    const storedRole = localStorage.getItem('mockRole');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-      setUserRole(storedRole);
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in, fetch additional details (role) from Firestore
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setCurrentUser({ ...user, ...userData });
+          setUserRole(userData.role || 'user');
+        } else {
+          // Fallback if user exists in Auth but not Firestore (shouldn't happen ideally)
+          setCurrentUser(user);
+          setUserRole('user');
+        }
+      } else {
+        // User is signed out
+        setCurrentUser(null);
+        setUserRole(null);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
-  // --- DUMMY LOGIN FUNCTION ---
-  const login = (email, password) => {
-    let user = null;
-    let role = 'user';
-
-    // 1. Check for Hardcoded Admin
-    if (email === 'admin@wayanad.com' && password === 'admin123') {
-      user = { uid: 'admin1', email, displayName: 'Super Admin' };
-      role = 'admin';
-    } 
-    // 2. Check for Hardcoded Guide
-    else if (email === 'guide@wayanad.com' && password === 'guide123') {
-      user = { uid: 'guide1', email, displayName: 'Rahul Guide' };
-      role = 'guide';
-    } 
-    // 3. Check for Normal User (Simulated)
-    else {
-      user = { uid: 'user' + Date.now(), email, displayName: email.split('@')[0] };
-      role = 'user';
+  // --- LOGIN FUNCTION ---
+  const login = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Role will be set by the onAuthStateChanged listener
+      return userCredential.user;
+    } catch (error) {
+      console.error("Login Error:", error);
+      throw error;
     }
-
-    // Save to State & LocalStorage
-    setCurrentUser(user);
-    setUserRole(role);
-    localStorage.setItem('mockUser', JSON.stringify(user));
-    localStorage.setItem('mockRole', role);
-    return role; 
   };
 
-  // --- FIXED SIGNUP FUNCTION ---
-  // Added 'role' parameter (default to 'user' if missing)
-  const signup = (name, email, password, role = 'user') => {
-    const newUser = { uid: 'user' + Date.now(), email, displayName: name };
-    
-    // Auto-login after signup
-    setCurrentUser(newUser);
-    
-    // ✅ FIX: Use the passed 'role' instead of hardcoding 'user'
-    setUserRole(role); 
-    
-    localStorage.setItem('mockUser', JSON.stringify(newUser));
-    localStorage.setItem('mockRole', role); // ✅ Save the correct role
+  // --- SIGNUP FUNCTION ---
+  const signup = async (name, email, password, role = 'user') => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Create User Document in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: name,
+        role: role,
+        createdAt: new Date().toISOString()
+      });
+
+      return user;
+    } catch (error) {
+      console.error("Signup Error:", error);
+      throw error;
+    }
   };
 
   // --- LOGOUT FUNCTION ---
-  const logout = () => {
-    setCurrentUser(null);
-    setUserRole(null);
-    localStorage.removeItem('mockUser');
-    localStorage.removeItem('mockRole');
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout Error:", error);
+    }
   };
 
   const value = {
