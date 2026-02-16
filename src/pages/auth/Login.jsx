@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion , AnimatePresence} from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaArrowLeft, FaEnvelope, FaArrowRight, FaLock, FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+
+// --- DATABASE IMPORT ---
+import { fetchDocument } from '../../firebase/db'; 
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [formError, setFormError] = useState(''); // Store general auth error
+  const [formError, setFormError] = useState(''); 
   
-  // Validation State
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
 
@@ -29,14 +31,15 @@ const Login = () => {
     if (!password) newErrors.password = "Password is required";
 
     setErrors(newErrors);
-    setFormError(''); // Clear general error when typing
+    setFormError(''); 
   }, [email, password]);
 
   const handleBlur = (field) => {
     setTouched(prev => ({ ...prev, [field]: true }));
   };
 
-  const handleLogin = (e) => {
+  // --- UPDATED LOGIN LOGIC ---
+  const handleLogin = async (e) => {
     e.preventDefault();
     setFormError('');
     setTouched({ email: true, password: true });
@@ -45,36 +48,44 @@ const Login = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      // --- MOCK BACKEND CHECK ---
-      // In a real app, 'login' would throw an error or return null on failure.
-      // Here we simulate checking against the dummy credentials from AuthContext.
+    try {
+      // 1. Authenticate with Firebase Auth
+      // FIX: Your AuthContext returns the 'user' object directly, not the credential wrapper.
+      const user = await login(email, password);
       
-      let valid = false;
-      let role = 'user';
+      console.log("Logged in user:", user.uid); // Debugging log
 
-      if (email === 'admin@wayanad.com' && password === 'admin123') {
-         valid = true; role = 'admin';
-      } else if (email === 'guide@wayanad.com' && password === 'guide123') {
-         valid = true; role = 'guide';
-      } else if (email.includes('@') && password.length >= 6) {
-         // Allow generic user login for demo if format is okay
-         // Remove this 'else if' block if you want STRICT login only for specific accounts
-         valid = true; role = 'user'; 
-      }
-
-      if (valid) {
-        login(email, password); // Update Context
-        setIsLoading(false);
+      // 2. Fetch User Role using your custom db.js helper
+      try {
+        // We use user.uid directly here
+        const userData = await fetchDocument("users", user.uid);
+        const role = userData.role; // e.g., 'admin', 'guide'
         
-        if (role === 'admin') navigate('/admin');
-        else if (role === 'guide') navigate('/guide');
-        else navigate('/');
-      } else {
-        setIsLoading(false);
-        setFormError("Invalid email or password. Please try again.");
+        console.log("User Role:", role); // Debugging log
+
+        if (role === 'admin') {
+          navigate('/admin');
+        } else if (role === 'guide') {
+          navigate('/guide');
+        } else {
+          navigate('/');
+        }
+      } catch (dbError) {
+        console.warn("User profile not found in database:", dbError);
+        // Fallback: If no role is found in DB, go to home
+        navigate('/'); 
       }
-    }, 1500);
+
+    } catch (error) {
+      console.error("Login Failed:", error);
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        setFormError("Invalid email or password.");
+      } else {
+        setFormError("Failed to login. Please try again later.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Helper for input styles
@@ -99,7 +110,6 @@ const Login = () => {
         {/* --- LEFT SIDE: FORM --- */}
         <div className="w-full lg:w-[45%] h-full flex flex-col bg-[#F3F1E7] relative">
            
-           {/* Header */}
            <div className="flex-none pt-8 px-8 md:px-12 pb-4 z-20">
              <Link 
                to="/" 
@@ -109,7 +119,6 @@ const Login = () => {
              </Link>
            </div>
 
-           {/* Content Center */}
            <div className="flex-1 flex flex-col justify-center px-8 md:px-12 pb-12 overflow-y-auto custom-scrollbar">
              <div className="w-full max-w-sm mx-auto">
                
@@ -127,7 +136,6 @@ const Login = () => {
                  </p>
                </motion.div>
 
-               {/* --- GLOBAL ERROR ALERT --- */}
                <AnimatePresence>
                  {formError && (
                    <motion.div 
@@ -142,51 +150,47 @@ const Login = () => {
 
                <form onSubmit={handleLogin} className="space-y-5" noValidate>
                    
-                   {/* Email Input */}
                    <div className="space-y-1.5">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-[#5A6654] ml-1">Email</label>
                       <div className="relative group">
-                         <FaEnvelope className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${touched.email && errors.email ? 'text-red-400' : 'text-[#3D4C38]/50 group-focus-within:text-[#3D4C38]'}`} />
-                         <input 
-                           type="email" 
-                           placeholder="name@example.com" 
-                           className={getInputClass('email')}
-                           onChange={(e) => setEmail(e.target.value)}
-                           onBlur={() => handleBlur('email')}
-                         />
+                          <FaEnvelope className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${touched.email && errors.email ? 'text-red-400' : 'text-[#3D4C38]/50 group-focus-within:text-[#3D4C38]'}`} />
+                          <input 
+                            type="email" 
+                            placeholder="name@example.com" 
+                            className={getInputClass('email')}
+                            onChange={(e) => setEmail(e.target.value)}
+                            onBlur={() => handleBlur('email')}
+                          />
                       </div>
                       {touched.email && errors.email && <p className="text-[10px] text-red-500 ml-1 flex items-center gap-1 font-bold animate-pulse"><FaExclamationCircle /> {errors.email}</p>}
                    </div>
 
-                   {/* Password Input */}
                    <div className="space-y-1.5">
                       <div className="flex justify-between items-center ml-1">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-[#5A6654]">Password</label>
-                        {/* <button type="button" className="text-[10px] font-bold uppercase tracking-widest text-[#3D4C38] hover:underline">Forgot?</button> */}
                       </div>
                       <div className="relative group">
-                         <FaLock className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${touched.password && errors.password ? 'text-red-400' : 'text-[#3D4C38]/50 group-focus-within:text-[#3D4C38]'}`} />
-                         
-                         <input 
-                           type={showPassword ? "text" : "password"} 
-                           placeholder="••••••••" 
-                           className={`${getInputClass('password')} pr-12`}
-                           onChange={(e) => setPassword(e.target.value)}
-                           onBlur={() => handleBlur('password')}
-                         />
+                          <FaLock className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${touched.password && errors.password ? 'text-red-400' : 'text-[#3D4C38]/50 group-focus-within:text-[#3D4C38]'}`} />
+                          
+                          <input 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="••••••••" 
+                            className={`${getInputClass('password')} pr-12`}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onBlur={() => handleBlur('password')}
+                          />
 
-                         <button
-                           type="button"
-                           onClick={() => setShowPassword(!showPassword)}
-                           className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3D4C38]/50 hover:text-[#3D4C38] transition-colors cursor-pointer outline-none"
-                         >
-                           {showPassword ? <FaEyeSlash /> : <FaEye />}
-                         </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3D4C38]/50 hover:text-[#3D4C38] transition-colors cursor-pointer outline-none"
+                          >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                          </button>
                       </div>
                       {touched.password && errors.password && <p className="text-[10px] text-red-500 ml-1 flex items-center gap-1 font-bold animate-pulse"><FaExclamationCircle /> {errors.password}</p>}
                    </div>
 
-                   {/* Submit Button */}
                    <button 
                      type="submit" 
                      disabled={isLoading || (Object.keys(errors).length > 0 && touched.email)}
@@ -208,7 +212,6 @@ const Login = () => {
              </div>
            </div>
         </div>
-
 
         {/* --- RIGHT SIDE: VISUAL --- */}
         <div className="hidden lg:block w-[55%] h-full relative overflow-hidden bg-[#E2E6D5]">

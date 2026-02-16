@@ -6,7 +6,7 @@ import { fetchCollection } from '../../firebase/db';
 
 const Explore = () => {
   const [places, setPlaces] = useState([]);
-  const [guideCounts, setGuideCounts] = useState({});
+  const [totalGuides, setTotalGuides] = useState(0); // Store total count
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,17 +17,10 @@ const Explore = () => {
           fetchCollection('guides')
         ]);
 
-        // Calculate guide counts per place
-        const counts = {};
-        guidesData.forEach(guide => {
-          if (guide.placeId) {
-            const pid = guide.placeId;
-            counts[pid] = (counts[pid] || 0) + 1;
-          }
-        });
-
         setPlaces(placesData);
-        setGuideCounts(counts);
+        
+        // CHANGED: Since guides are common, the count is just the total number of guides
+        setTotalGuides(guidesData.length);
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -49,7 +42,6 @@ const Explore = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-
           <h1 className="text-5xl md:text-7xl font-['Oswald'] font-bold text-[#1F261C] uppercase tracking-tight">
             The <span className="text-[#3D4C38] italic">Green</span> Book
           </h1>
@@ -63,7 +55,12 @@ const Explore = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 items-stretch">
             {places.map((place, index) => (
-              <PlaceCard key={place.id} place={place} index={index} guideCount={guideCounts[place.id] || 0} />
+              <PlaceCard 
+                key={place.id} 
+                place={place} 
+                index={index} 
+                guideCount={totalGuides} // Pass the total count to every card
+              />
             ))}
           </div>
         )}
@@ -76,7 +73,7 @@ const PlaceCard = ({ place, index, guideCount }) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
-  // Navigate to BookGuide page with state
+  // Navigate to PlaceDetails page with state
   const handleNavigate = () => {
     navigate(`/place/${place.id}`, { state: { place } });
   };
@@ -89,12 +86,9 @@ const PlaceCard = ({ place, index, guideCount }) => {
       transition={{ delay: index * 0.1, duration: 0.6 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      // UPDATED: h-full ensures card takes full height of grid cell
-      // UPDATED: Flex-col ensures proper spacing distribution
       className="group relative bg-[#F3F1E7] rounded-[2rem] overflow-hidden border border-[#DEDBD0] shadow-lg shadow-[#2B3326]/5 flex flex-col h-full"
     >
       {/* Image */}
-      {/* UPDATED: Changed from percentage to fixed/responsive height to ensure content alignment */}
       <div className="h-64 md:h-72 relative overflow-hidden shrink-0 cursor-pointer" onClick={handleNavigate}>
         <motion.img
           src={place.image || place.coverImage || "https://placehold.co/600x400"}
@@ -107,7 +101,6 @@ const PlaceCard = ({ place, index, guideCount }) => {
       </div>
 
       {/* Content */}
-      {/* UPDATED: p-6 md:p-8 for responsive padding */}
       <div className="flex-1 p-6 md:p-8 flex flex-col">
 
         {/* Title */}
@@ -137,7 +130,6 @@ const PlaceCard = ({ place, index, guideCount }) => {
         </p>
 
         {/* Footer Button */}
-        {/* UPDATED: mt-auto ensures button sticks to bottom, pt-6 adds the requested outer padding/space */}
         <div className="mt-auto pt-6 border-t border-[#DEDBD0]">
           <button
             onClick={handleNavigate}

@@ -8,19 +8,34 @@ import {
 } from 'react-icons/fa';
 import { fetchCollection, deleteDocument } from '../../firebase/db';
 
-// --- HELPER: GENERATE CHART DATA FROM REAL USERS ---
+// --- HELPER: ROBUST DATE FORMATTER ---
+const formatDate = (dateInput) => {
+    if (!dateInput) return "N/A";
+    try {
+        if (dateInput.seconds) {
+            return new Date(dateInput.seconds * 1000).toLocaleDateString("en-US", {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+        }
+        return new Date(dateInput).toLocaleDateString("en-US", {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+    } catch (error) {
+        return "Invalid Date";
+    }
+};
+
+// --- HELPER: GENERATE CHART DATA ---
 const generateGrowthData = (users) => {
    const monthCounts = {};
    users.forEach(user => {
-      // Handle both Firestore Timestamp and string dates
       let date;
-      if (user.joined?.seconds) {
-         date = new Date(user.joined.seconds * 1000);
-      } else if (user.createdAt) {
-         date = new Date(user.createdAt);
-      } else {
-         date = new Date();
-      }
+      // Handle various date formats
+      const rawDate = user.joined || user.createdAt;
+      
+      if (rawDate?.seconds) date = new Date(rawDate.seconds * 1000);
+      else if (rawDate) date = new Date(rawDate);
+      else date = new Date();
 
       const month = date.toLocaleString('default', { month: 'short' });
       monthCounts[month] = (monthCounts[month] || 0) + 1;
@@ -39,32 +54,50 @@ const ManageUsers = () => {
    const [loading, setLoading] = useState(true);
    const [searchTerm, setSearchTerm] = useState("");
 
+   // --- DATA LOADING ---
    useEffect(() => {
-      const loadUsers = async () => {
+      const loadData = async () => {
          try {
-            const data = await fetchCollection('users');
-            setUsers(data);
+            const [usersData, bookingsData] = await Promise.all([
+                fetchCollection('users'),
+                fetchCollection('bookings')
+            ]);
+
+            // Calculate Booking Counts
+            const bookingCounts = {};
+            bookingsData.forEach(booking => {
+                const uid = booking.userId || booking.user_id; 
+                if (uid) bookingCounts[uid] = (bookingCounts[uid] || 0) + 1;
+            });
+
+            // Merge & Normalize Data
+            const enrichedUsers = usersData.map(user => ({
+                ...user,
+                // --- FIX: CHECK ALL POSSIBLE NAME FIELDS ---
+                realName: user.name || user.displayName || user.fullName || "Unknown User",
+                realBookingCount: bookingCounts[user.id] || 0, 
+                displayDate: user.createdAt || user.joined 
+            }));
+
+            setUsers(enrichedUsers);
          } catch (error) {
-            console.error("Error fetching users:", error);
+            console.error("Error fetching data:", error);
          } finally {
             setLoading(false);
          }
       };
-      loadUsers();
+      loadData();
    }, []);
 
    // --- DERIVED DATA ---
    const tourists = users.filter(user => user.role !== 'guide' && user.role !== 'admin');
-
-   // Generate dynamic chart data
    const userGrowthData = generateGrowthData(tourists);
 
    // --- FILTERING ---
-   const filteredUsers = users.filter(user => {
-      const isTourist = user.role !== 'guide' && user.role !== 'admin';
-      const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-         (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-      return isTourist && matchesSearch;
+   const filteredUsers = tourists.filter(user => {
+      const matchesSearch = (user.realName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+          (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+      return matchesSearch;
    });
 
    const handleDelete = async (id) => {
@@ -90,7 +123,7 @@ const ManageUsers = () => {
       visible: { opacity: 1, y: 0 }
    };
 
-   if (loading) return <div className="text-center p-10">Loading Users...</div>;
+   if (loading) return <div className="text-center p-10 text-[#5A6654]">Loading Users & Activity...</div>;
 
    return (
       <motion.div
@@ -102,8 +135,6 @@ const ManageUsers = () => {
 
          {/* ==================== 1. HEADER & CHART SECTION ==================== */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-            {/* Header Text */}
             <motion.div variants={itemVars} className="lg:col-span-1 flex flex-col justify-center">
                <h1 className="text-4xl font-['Oswald'] font-bold text-[#2B3326] uppercase tracking-wide mb-2">
                   User Management
@@ -112,7 +143,6 @@ const ManageUsers = () => {
                   View, search, and manage registered tourists. Track user growth and activity.
                </p>
 
-               {/* Quick Stat (Dynamic Count) */}
                <div className="flex items-center gap-4 p-4 bg-[#F3F1E7] rounded-xl border border-[#DEDBD0] shadow-sm">
                   <div className="p-3 bg-[#3D4C38] text-[#F3F1E7] rounded-lg">
                      <FaUsers size={20} />
@@ -124,7 +154,6 @@ const ManageUsers = () => {
                </div>
             </motion.div>
 
-            {/* Growth Chart */}
             <motion.div variants={itemVars} className="lg:col-span-2 bg-[#F3F1E7] p-6 rounded-2xl shadow-xl shadow-[#3D4C38]/5 border border-[#DEDBD0]">
                <div className="flex justify-between items-center mb-4">
                   <h3 className="font-['Oswald'] font-bold text-lg text-[#2B3326] uppercase">New Registrations</h3>
@@ -150,14 +179,11 @@ const ManageUsers = () => {
                   </ResponsiveContainer>
                </div>
             </motion.div>
-
          </div>
 
 
          {/* ==================== 2. TOOLBAR ==================== */}
          <motion.div variants={itemVars} className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#F3F1E7] p-4 rounded-xl border border-[#DEDBD0] shadow-sm">
-
-            {/* Search Input */}
             <div className="relative w-full sm:w-96">
                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5A6654]" />
                <input
@@ -167,18 +193,14 @@ const ManageUsers = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                />
             </div>
-
-            {/* Filter Button */}
-            <button className="flex items-center gap-2 px-6 py-3 bg-[#E2E6D5] text-[#3D4C38] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#DEDBD0] transition-colors w-full sm:w-auto justify-center">
-               <FaFilter /> Filter
-            </button>
+            
          </motion.div>
 
 
          {/* ==================== 3. RESPONSIVE LIST / TABLE ==================== */}
          <motion.div variants={itemVars} className="bg-[#F3F1E7] rounded-2xl border border-[#DEDBD0] shadow-lg shadow-[#3D4C38]/5 overflow-hidden">
 
-            {/* --- DESKTOP TABLE (Hidden on Mobile) --- */}
+            {/* --- DESKTOP TABLE --- */}
             <div className="hidden md:block overflow-x-auto">
                <table className="w-full text-left">
                   <thead className="bg-[#E2E6D5]/50 border-b border-[#DEDBD0]">
@@ -203,23 +225,33 @@ const ManageUsers = () => {
                               >
                                  <td className="px-6 py-4">
                                     <div className="flex items-center gap-4">
-                                       <div className="w-10 h-10 rounded-full bg-[#DEDBD0] flex items-center justify-center text-[#5A6654] text-lg">
-                                          <FaUserCircle />
+                                       <div className="w-10 h-10 rounded-full bg-[#DEDBD0] flex items-center justify-center text-[#5A6654] text-lg overflow-hidden">
+                                          {user.image || user.photoURL ? (
+                                              <img src={user.image || user.photoURL} alt="" className="w-full h-full object-cover"/>
+                                          ) : (
+                                              <FaUserCircle />
+                                          )}
                                        </div>
-                                       <p className="font-bold text-[#2B3326] text-sm">{user.name}</p>
+                                       {/* --- USE NORMALIZED NAME --- */}
+                                       <p className="font-bold text-[#2B3326] text-sm">{user.realName}</p>
                                     </div>
                                  </td>
                                  <td className="px-6 py-4 text-sm text-[#5A6654] font-medium">{user.email}</td>
-                                 <td className="px-6 py-4 text-sm text-[#5A6654]">{user.joined}</td>
+                                 
+                                 <td className="px-6 py-4 text-sm text-[#5A6654]">
+                                     {formatDate(user.displayDate)}
+                                 </td>
+
                                  <td className="px-6 py-4">
                                     <span className="bg-[#D4AF37]/10 text-[#D4AF37] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
-                                       {user.bookings || 0} Bookings
+                                       {user.realBookingCount} Bookings
                                     </span>
                                  </td>
+
                                  <td className="px-6 py-4">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 w-fit
-                                  ${user.status === 'Active' ? 'bg-[#3D4C38]/10 text-[#3D4C38]' : 'bg-gray-100 text-gray-500'}
-                               `}>
+                                    ${user.status === 'Active' ? 'bg-[#3D4C38]/10 text-[#3D4C38]' : 'bg-gray-100 text-gray-500'}
+                                   `}>
                                        <span className={`w-2 h-2 rounded-full ${user.status === 'Active' ? 'bg-[#3D4C38]' : 'bg-gray-400'}`}></span>
                                        {user.status || 'Active'}
                                     </span>
@@ -232,29 +264,6 @@ const ManageUsers = () => {
                                     >
                                        <FaTrash size={12} />
                                     </button>
-
-                                    {user.role !== 'admin' && (
-                                       <button
-                                          onClick={async () => {
-                                             if (window.confirm(`Promote ${user.name} to Admin?`)) {
-                                                try {
-                                                   const { setDocument } = await import('../../firebase/db');
-                                                   await setDocument('users', user.id, { role: 'admin' });
-                                                   alert("User promoted to Admin!");
-                                                   // Remove from list as this list filters out admins
-                                                   setUsers(users.filter(u => u.id !== user.id));
-                                                } catch (e) {
-                                                   console.error(e);
-                                                   alert("Failed to promote user.");
-                                                }
-                                             }
-                                          }}
-                                          className="ml-2 p-2 rounded-lg bg-[#E2E6D5] text-[#3D4C38] hover:bg-[#3D4C38] hover:text-[#F3F1E7] transition-colors opacity-60 group-hover:opacity-100"
-                                          title="Promote to Admin"
-                                       >
-                                          <FaUserCircle size={12} />
-                                       </button>
-                                    )}
                                  </td>
                               </motion.tr>
                            ))
@@ -270,7 +279,7 @@ const ManageUsers = () => {
                </table>
             </div>
 
-            {/* --- MOBILE CARDS (Visible on Mobile) --- */}
+            {/* --- MOBILE CARDS --- */}
             <div className="md:hidden flex flex-col divide-y divide-[#DEDBD0]">
                <AnimatePresence>
                   {filteredUsers.length > 0 ? (
@@ -284,29 +293,34 @@ const ManageUsers = () => {
                         >
                            <div className="flex justify-between items-start">
                               <div className="flex items-center gap-3">
-                                 <div className="w-12 h-12 rounded-full bg-[#E2E6D5] flex items-center justify-center text-[#5A6654] text-xl">
-                                    <FaUserCircle />
+                                 <div className="w-12 h-12 rounded-full bg-[#E2E6D5] flex items-center justify-center text-[#5A6654] text-xl overflow-hidden">
+                                     {user.image || user.photoURL ? (
+                                          <img src={user.image || user.photoURL} alt="" className="w-full h-full object-cover"/>
+                                      ) : (
+                                          <FaUserCircle />
+                                      )}
                                  </div>
                                  <div>
-                                    <h4 className="font-bold text-[#2B3326] text-lg">{user.name}</h4>
+                                    {/* --- USE NORMALIZED NAME --- */}
+                                    <h4 className="font-bold text-[#2B3326] text-lg">{user.realName}</h4>
                                     <div className="flex items-center gap-1 text-xs text-[#5A6654]">
                                        <FaEnvelope size={10} /> {user.email}
                                     </div>
                                  </div>
                               </div>
                               <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide border
-                            ${user.status === 'Active' ? 'bg-[#3D4C38]/5 border-[#3D4C38]/20 text-[#3D4C38]' : 'bg-gray-100 border-gray-200 text-gray-500'}
-                         `}>
+                                 ${user.status === 'Active' ? 'bg-[#3D4C38]/5 border-[#3D4C38]/20 text-[#3D4C38]' : 'bg-gray-100 border-gray-200 text-gray-500'}
+                              `}>
                                  {user.status || 'Active'}
                               </span>
                            </div>
 
                            <div className="grid grid-cols-2 gap-4 py-2">
                               <div className="flex items-center gap-2 text-xs text-[#5A6654]">
-                                 <FaCalendarAlt /> Joined: {user.joined}
+                                 <FaCalendarAlt /> Joined: {formatDate(user.displayDate)}
                               </div>
                               <div className="flex items-center gap-2 text-xs text-[#D4AF37] font-bold uppercase">
-                                 Total Trips: {user.bookings || 0}
+                                 Total Trips: {user.realBookingCount}
                               </div>
                            </div>
 
@@ -316,27 +330,6 @@ const ManageUsers = () => {
                            >
                               <FaTrash size={12} /> Remove User
                            </button>
-
-                           {user.role !== 'admin' && (
-                              <button
-                                 onClick={async () => {
-                                    if (window.confirm(`Promote ${user.name} to Admin?`)) {
-                                       try {
-                                          const { setDocument } = await import('../../firebase/db');
-                                          await setDocument('users', user.id, { role: 'admin' });
-                                          alert("User promoted to Admin!");
-                                          setUsers(users.filter(u => u.id !== user.id));
-                                       } catch (e) {
-                                          console.error(e);
-                                          alert("Failed to promote user.");
-                                       }
-                                    }
-                                 }}
-                                 className="w-full py-3 rounded-lg bg-[#3D4C38]/10 text-[#3D4C38] hover:bg-[#3D4C38] hover:text-[#F3F1E7] transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mt-2"
-                              >
-                                 <FaUserCircle size={12} /> Make Admin
-                              </button>
-                           )}
                         </motion.div>
                      ))
                   ) : (

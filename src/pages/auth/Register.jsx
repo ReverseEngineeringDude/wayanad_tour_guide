@@ -6,7 +6,8 @@ import {
   FaArrowRight, FaEyeSlash, FaPhone, FaBriefcase, FaMapMarkerAlt, FaPen, FaCheck, FaExclamationCircle, FaCamera, FaTimes
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import { setDocument, convertToBase64 } from '../../firebase/db';
+// Ensure this path is correct based on your project structure
+import { setDocument, convertToBase64 } from '../../firebase/db'; 
 
 const Register = () => {
   const { signup } = useAuth();
@@ -74,10 +75,9 @@ const Register = () => {
     }
   };
 
-  // FIXED: Added event parameters to stop bubbling
   const removeImage = (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevents triggering the file input underneath
+    e.stopPropagation();
     setProfileImage(null);
     setImagePreview(null);
   };
@@ -134,6 +134,7 @@ const Register = () => {
   }, [formData, role, selectedLanguages, profileImage]);
 
 
+  // --- MAIN REGISTRATION LOGIC ---
   const handleRegister = async (e) => {
     e.preventDefault();
     const allTouched = Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {});
@@ -144,17 +145,26 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // 1. Sign up user (creates Auth & 'users' doc)
+      // 1. Create Auth User
+      // This creates the user in Firebase Auth and writes the basic 'users' doc
       const user = await signup(formData.name, formData.email, formData.password, role);
 
-      // 2. If Guide, create 'guides' doc and handle image
-      if (role === 'guide') {
+      // 2. If Guide, create 'guides' doc
+      if (role === 'guide' && user) {
         let imageBase64 = "https://via.placeholder.com/150";
+
+        // FIX: Check image size before converting
+        // Firestore has a 1MB limit for documents. Large images cause the "Stuck Loading" issue.
         if (profileImage) {
-          try {
-            imageBase64 = await convertToBase64(profileImage);
-          } catch (err) {
-            console.error("Error converting image:", err);
+          if (profileImage.size > 800 * 1024) { // Limit to 800KB to be safe
+             console.warn("Image too large, using default.");
+             alert("Your profile image is too large (Limit 800KB). A default image was used. You can update it later in your profile.");
+          } else {
+             try {
+               imageBase64 = await convertToBase64(profileImage);
+             } catch (err) {
+               console.error("Image conversion failed, using default:", err);
+             }
           }
         }
 
@@ -164,32 +174,40 @@ const Register = () => {
           phone: formData.phone,
           experience: formData.experience,
           location: formData.location,
-          languages: selectedLanguages, // Array
+          languages: selectedLanguages,
           bio: formData.bio,
           image: imageBase64,
-          status: 'Active', // Or 'Pending' if approval needed
+          status: 'Active',
           joined: new Date().toISOString().split('T')[0],
           rating: 0,
           reviewCount: 0,
           uid: user.uid
         };
 
-        // Use setDocument to use the same UID
+        // Save guide details
         await setDocument('guides', user.uid, guideData);
       }
 
-      setIsLoading(false);
+      // 3. Navigation (Success)
+      setIsLoading(false); // Stop loading before navigating
 
       if (role === 'guide') {
-        navigate('/guide');
+        // FIX: Force redirect to guide dashboard with replace
+        navigate('/guide', { replace: true });
       } else {
-        navigate('/');
+        navigate('/', { replace: true });
       }
 
     } catch (error) {
       console.error("Registration Error:", error);
-      setIsLoading(false);
-      // You might want to show an error message to the user here
+      setIsLoading(false); // Stop loading on error
+
+      if (error.code === 'auth/email-already-in-use') {
+        alert("This email is already registered. Please Login.");
+        navigate('/login');
+      } else {
+        alert("Registration failed: " + error.message);
+      }
     }
   };
 
@@ -295,7 +313,6 @@ const Register = () => {
                           {imagePreview ? (
                             <div className="relative w-32 mx-auto aspect-[3/4] rounded-lg overflow-hidden shadow-md z-10">
                               <img src={imagePreview} alt="Profile Preview" className="w-full h-full object-cover" />
-                              {/* FIXED: Added z-20 and onClick handlers */}
                               <button
                                 type="button"
                                 onClick={removeImage}
@@ -314,7 +331,7 @@ const Register = () => {
                             </>
                           )}
 
-                          {/* File Input - Only active if no preview exists */}
+                          {/* File Input */}
                           {!imagePreview && (
                             <input
                               type="file"

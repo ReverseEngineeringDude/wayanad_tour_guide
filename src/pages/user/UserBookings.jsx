@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUserTie, FaCheck, FaTimes, FaHourglassHalf, FaSearch, FaFilter } from 'react-icons/fa';
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUserTie, FaCheck, FaTimes, FaHourglassHalf, FaSearch, FaFilter, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import { fetchQuery, where } from '../../firebase/db';
+// Added deleteDocument to imports
+import { fetchQuery, where, deleteDocument } from '../../firebase/db';
+import { useNavigate } from 'react-router-dom';
 
 const UserBookings = () => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // --- FETCH BOOKINGS ---
   useEffect(() => {
     const loadBookings = async () => {
       if (currentUser) {
         try {
           const data = await fetchQuery('bookings', where('userId', '==', currentUser.uid));
-          // Sort by date descending (client side for now as complex queries need index)
+          // Sort by date descending
           const sortedData = data.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
           setBookings(sortedData);
         } catch (error) {
@@ -28,6 +32,20 @@ const UserBookings = () => {
     };
     loadBookings();
   }, [currentUser]);
+
+  // --- CANCEL HANDLER ---
+  const handleCancelBooking = async (bookingId) => {
+    if (window.confirm("Are you sure you want to cancel this booking request?")) {
+      try {
+        await deleteDocument('bookings', bookingId);
+        // Remove from local state immediately
+        setBookings(prev => prev.filter(b => b.id !== bookingId));
+      } catch (error) {
+        console.error("Error cancelling booking:", error);
+        alert("Failed to cancel booking.");
+      }
+    }
+  };
 
   // Filter Logic
   const filteredBookings = bookings.filter(booking => {
@@ -130,23 +148,36 @@ const UserBookings = () => {
                     </div>
                   </div>
 
-                  {/* Action / Price */}
-                  <div className="md:col-span-3 flex flex-col items-start md:items-end justify-between h-full gap-4">
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase font-bold text-[#5A6654] tracking-widest block">Total Price</span>
-                      <span className="text-2xl font-bold text-[#3D4C38]">₹{booking.price || 'Pending'}</span>
-                    </div>
-
+                  {/* Actions - No Price Display */}
+                  <div className="md:col-span-3 flex flex-col items-start md:items-end justify-center h-full gap-4">
+                    
+                    {/* CONFIRMED STATE */}
                     {booking.status === 'confirmed' && (
-                      <button className="px-5 py-2 bg-[#E2E6D5] text-[#3D4C38] rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-[#3D4C38] hover:text-[#F3F1E7] transition-colors">
-                        View Ticket
-                      </button>
+                      <div className="flex flex-col items-end gap-2">
+                         <span className="text-xs font-bold text-[#3D4C38] uppercase tracking-widest bg-[#3D4C38]/10 px-3 py-1 rounded-full">
+                            Booking Accepted
+                         </span>
+                         {/* Optional: Add View Details button later */}
+                      </div>
                     )}
+
+                    {/* PENDING STATE (Show Cancel) */}
                     {booking.status === 'pending' && (
-                      <button className="px-5 py-2 border border-red-200 text-red-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-50 transition-colors">
-                        Cancel Request
+                      <button 
+                        onClick={() => handleCancelBooking(booking.id)}
+                        className="px-5 py-3 border border-red-200 text-red-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-50 transition-colors flex items-center gap-2"
+                      >
+                        <FaTrash size={12} /> Cancel Request
                       </button>
                     )}
+
+                    {/* CANCELLED STATE */}
+                    {booking.status === 'cancelled' && (
+                       <span className="text-xs font-bold text-red-400 uppercase tracking-widest">
+                          Not Active
+                       </span>
+                    )}
+
                   </div>
                 </motion.div>
               ))}
@@ -159,7 +190,7 @@ const UserBookings = () => {
             </div>
             <h3 className="text-xl font-bold text-[#2B3326] mb-2">No Bookings Found</h3>
             <p className="text-[#5A6654] mb-8">You haven't booked any trips yet.</p>
-            <button className="px-8 py-3 bg-[#3D4C38] text-[#F3F1E7] rounded-xl font-bold uppercase tracking-widest hover:bg-[#2B3326] transition-colors">
+            <button onClick={() => navigate('/explore')} className="px-8 py-3 bg-[#3D4C38] text-[#F3F1E7] rounded-xl font-bold uppercase tracking-widest hover:bg-[#2B3326] transition-colors">
               Explore Places
             </button>
           </div>

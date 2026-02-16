@@ -3,9 +3,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaArrowLeft, FaMapMarkerAlt, FaHistory, FaImages, FaUserTie, FaStar,
-  FaArrowRight, FaClock, FaTicketAlt, FaCalendarAlt, FaLock, FaTimes
+  FaArrowRight, FaClock, FaTicketAlt, FaCalendarAlt, FaLock
 } from 'react-icons/fa';
-import { fetchCollection, fetchQuery, where } from '../../firebase/db';
+// CHANGED: We only need fetchCollection now, removed fetchQuery/where for this specific task
+import { fetchCollection } from '../../firebase/db'; 
 import { useAuth } from '../../context/AuthContext';
 
 const PlaceDetails = () => {
@@ -17,18 +18,17 @@ const PlaceDetails = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [guides, setGuides] = useState([]);
 
-  // Use passed state or fetch place
+  // Use passed state or fetch place (Logic to fetch place by ID could be added here if state is null)
   const place = state?.place;
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    // Fetch Guides specific to this place
+    // --- UPDATED: FETCH ALL GUIDES (COMMON FOR ALL PLACES) ---
     const loadGuides = async () => {
-      if (!place?.id) return;
       try {
-        // Fetch guides where placeId matches
-        const data = await fetchQuery('guides', where('placeId', '==', place.id));
+        // CHANGED: Fetch ALL guides instead of filtering by placeId
+        const data = await fetchCollection('guides');
         setGuides(data);
       } catch (error) {
         console.error("Error fetching guides:", error);
@@ -36,7 +36,7 @@ const PlaceDetails = () => {
     };
     loadGuides();
 
-  }, [place?.id]); // Re-run if place.id changes
+  }, []); // Empty dependency array means this loads once when page opens
 
   if (!place) return <div className="min-h-screen flex items-center justify-center text-[#3D4C38] font-bold">Place not found</div>;
 
@@ -79,7 +79,7 @@ const PlaceDetails = () => {
                 <FaMapMarkerAlt className="text-[#D4AF37]" /> Wayanad, Kerala
               </span>
               <span className="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-lg backdrop-blur-md border border-white/10 shadow-sm">
-                <FaUserTie className="text-[#D4AF37]" /> {guides.length} Guides
+                <FaUserTie className="text-[#D4AF37]" /> {guides.length} Available Guides
               </span>
             </div>
           </motion.div>
@@ -186,7 +186,7 @@ const PlaceDetails = () => {
           </div>
         </div>
 
-        {/* --- AVAILABLE GUIDES SECTION --- */}
+        {/* --- AVAILABLE GUIDES SECTION (ALL GUIDES) --- */}
         <div id="guides" className="border-t border-[#3D4C38]/10 pt-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 px-2 gap-4">
             <div>
@@ -225,7 +225,7 @@ const PlaceDetails = () => {
                       <span>Experience</span> <span className="text-[#2B3326] font-bold">{guide.experience}</span>
                     </div>
                     <div className="flex justify-between border-b border-[#DEDBD0] pb-2">
-                      <span>Language</span> <span className="text-[#2B3326] font-bold">{guide.languages ? guide.languages[0] : 'English'}</span>
+                      <span>Language</span> <span className="text-[#2B3326] font-bold">{Array.isArray(guide.languages) ? guide.languages[0] : (guide.languages || 'English')}</span>
                     </div>
                   </div>
 

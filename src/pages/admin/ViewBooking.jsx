@@ -185,7 +185,7 @@ const ViewBookings = () => {
                <table className="w-full text-left">
                   <thead className="bg-[#E2E6D5]/50 border-b border-[#DEDBD0]">
                      <tr>
-                        {['Tourist', 'Assigned Guide', 'Location', 'Date', 'Amount', 'Status'].map((head) => (
+                        {['Tourist', 'Assigned Guide', 'Location', 'Date','', 'Status'].map((head) => (
                            <th key={head} className="px-6 py-5 text-[10px] font-bold text-[#5A6654] uppercase tracking-widest">
                               {head}
                            </th>

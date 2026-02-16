@@ -102,14 +102,7 @@ const AdminHome = () => {
             Overview of platform performance and activity.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#5A6654] bg-[#F3F1E7] px-3 py-1 rounded-lg border border-[#DEDBD0]">
-            Last 7 Days
-          </span>
-          <button className="bg-[#3D4C38] text-[#F3F1E7] px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest shadow-lg hover:bg-[#2B3326] transition-colors">
-            Export Report
-          </button>
-        </div>
+      
       </motion.div>
 
 
