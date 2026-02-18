@@ -8,6 +8,8 @@ import {
 } from 'react-icons/fa';
 import { fetchQuery, where, updateDocument } from '../../firebase/db';
 import { useAuth } from '../../context/AuthContext';
+// Import the email service
+import { sendApprovalEmail } from '../../utils/emailService'; 
 
 const COLORS = ['#3D4C38', '#D4AF37', '#e74c3c'];
 
@@ -31,14 +33,43 @@ const Requests = () => {
       loadRequests();
    }, [currentUser]);
 
-   // --- ACTIONS ---
+   // --- ACTIONS (UPDATED) ---
    const handleAction = async (id, newStatus) => {
       try {
+         // 1. Update Database Status first
          await updateDocument('bookings', id, { status: newStatus });
+
+         // 2. If Confirmed, Send Email
+         let emailSent = false;
+         if (newStatus === 'confirmed') {
+             // Find the specific request object to get details for the email
+             const requestToApprove = requests.find(r => r.id === id);
+             
+             // Check if we have the request and the user's email
+             if (requestToApprove && requestToApprove.touristEmail) {
+                 console.log("Sending approval email to:", requestToApprove.touristEmail);
+                 // CALL THE EMAIL SERVICE HERE
+                 emailSent = await sendApprovalEmail(requestToApprove);
+             } else {
+                 console.warn("Cannot send email: Tourist email missing in booking data.");
+             }
+         }
+
+         // 3. Update Local UI State
          const updatedRequests = requests.map(req =>
             req.id === id ? { ...req, status: newStatus } : req
          );
          setRequests(updatedRequests);
+
+         // 4. Show Feedback to Guide
+         if (newStatus === 'confirmed') {
+             if (emailSent) {
+                 alert("Request Accepted! Confirmation email sent to the tourist.");
+             } else {
+                 alert("Request Accepted! (Note: Email alert failed to send, but booking is confirmed in DB)");
+             }
+         }
+
       } catch (error) {
          console.error("Error updating booking status", error);
          alert("Failed to update status");

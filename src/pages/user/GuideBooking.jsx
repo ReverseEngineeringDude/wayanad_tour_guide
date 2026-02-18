@@ -64,6 +64,11 @@ const GuideBooking = () => {
             placeImage: place.image || place.coverImage,
             userId: currentUser.uid,
             touristName: currentUser.displayName || currentUser.email,
+            
+            // --- CRITICAL UPDATE: Save Tourist Email ---
+            touristEmail: currentUser.email, 
+            // ------------------------------------------
+
             status: 'pending',
             createdAt: new Date().toISOString()
          };
@@ -130,7 +135,7 @@ const GuideBooking = () => {
 
                      <form onSubmit={handleConfirm} className="space-y-5">
 
-                        {/* Form Fields (Same as before) */}
+                        {/* Form Fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                            <div className="bg-white p-4 rounded-2xl border border-[#DEDBD0] shadow-sm">
                               <label className="text-[10px] font-bold uppercase text-[#5A6654] block mb-2">Date</label>
